@@ -9,7 +9,7 @@ Ce projet se distingue par le fait que l'intégralité des mises à jour est aut
 Pour accéder à la cartographie des mises à jour, vous pouvez suivre [ce lien](https://fraetech.github.io/maj-hebdo/).
 
 ## Le code source de MAJ-HEBDO est-il disponible ?
-Oui ! Depuis peu, l'intégralité du code source a été rendue publique. N'hésitez pas à y jeter un oeil ! C'est [par ici](https://github.com/fraetech/anfr_hebdo).
+Oui ! Depuis peu, l'intégralité du code source a été rendu public. N'hésitez pas à y jeter un oeil ! C'est [par ici](https://github.com/fraetech/anfr_hebdo).
 
 ## Je souhaite contribuer, comment faire ?
 Tout dépend du type de contribution.  
