@@ -5,7 +5,7 @@ Dans ce *repo* GitHub, vous trouverez les quelques fichiers HTML faisant partie 
 
 ## Qu'est-ce-que MAJ-HEBDO ?
 Le but est de fournir plusieurs cartes répertoriant les modifications déclarées auprès de l'ANFR par les opérateurs français généralement sur une semaine.  
-Ce projet se distingue par le fait que l'intégralité des mises à jour est automatisée, rendant la publications de mise-à-jour plus rapideq.  
+Ce projet se distingue par le fait que l'intégralité des mises à jour est automatisée, rendant la publications de mise-à-jour plus rapide.  
 Pour accéder à la cartographie des mises à jour, vous pouvez suivre [ce lien](https://fraetech.github.io/maj-hebdo/).
 
 ## Le code source de MAJ-HEBDO est-il disponible ?
