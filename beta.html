@@ -115,7 +115,7 @@
 <body>
   <div id="message">
     <button id="closeButton">&times;</button>
-    <h4><strong>Dernière MAJ ANFR dispo</strong></h4>
+    <h4><strong>[BETA] Dernière MAJ ANFR dispo [BETA]</strong></h4>
     <p>Vous pouvez choisir les actions à afficher à l'aide du layer control (en haut à droite).<br>
     Questions, remarques et suggestions -> <a href='https://github.com/fraetech/maj-hebdo/issues' target='_blank'>GitHub MAJ_Hebdo</a>.<br>
     Vous cherchez plutôt les modifications d'un opérateur en particulier ?<br>
@@ -296,7 +296,7 @@
       });
     }
 
-    fetch('https://fraetech.github.io/latest.csv')
+    fetch('https://fraetech.github.io/files/latest.csv')
       .then(res => res.text())
       .then(text => {
         const rows = csvToRows(text);
