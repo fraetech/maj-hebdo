@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modifications ANFR hebdomadaires</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <link rel="icon" href="https://fraetech.github.io/maj-hebdo/icons/favicon.svg" type="image/svg+xml">
+  <style>
+    * {
+      font-family: "Didact Gothic", sans-serif !important;
+      font-weight: 500;
+      font-style: normal;
+    }
+
+    #map { height: 90vh; }
+
+    .filters {
+      padding: 10px;
+      max-height: 10vh;
+      overflow-y: auto;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      max-height: 100%;
+      overflow-y: auto;
+    }
+
+    .filter-group label:first-child {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .bandeau {
+      color: white;
+      text-align: center;
+      padding: 5px;
+      font-size: 1.2em;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+
+    .icone-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .icone {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0f0f0;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .icone:hover {
+      background-color: #007BFF;
+      transform: scale(1.1);
+    }
+
+    .icone img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .titre {
+      text-align: center;
+      font-size: 1em;
+      margin: 5px 0;
+      color: #333;
+    }
+
+    .contenu {
+      padding: 10px;
+      background-color: #f9f9f9;
+    }
+
+    #message {
+      position: fixed;
+      bottom: 50px; left: 50px;
+      z-index: 1000;
+      background-color: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    #closeButton {
+      position: absolute;
+      top: 5px; right: 5px;
+      background-color: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    strong { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div id="message">
+    <button id="closeButton">&times;</button>
+    <h4><strong>Dernière MAJ ANFR dispo</strong></h4>
+    <p>Vous pouvez choisir les actions à afficher à l'aide du layer control (en haut à droite).<br>
+    Questions, remarques et suggestions -> <a href='https://github.com/fraetech/maj-hebdo/issues' target='_blank'>GitHub MAJ_Hebdo</a>.<br>
+    Vous cherchez plutôt les modifications d'un opérateur en particulier ?<br>
+    <a href='https://fraetech.github.io/maj-hebdo/' target="_self">Tous</a>,
+    <a href='https://fraetech.github.io/maj-hebdo/bouygues.html' target="_self">Carte Bouygues</a>,
+    <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Carte Free</a>,
+    <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Carte Orange</a>,
+    <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">Carte SFR</a><br>
+    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.23</small></p>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group" id="technoFilters"><label>Technologies</label></div>
+    <div class="filter-group" id="freqFilters"><label>Fréquences</label></div>
+    <div class="filter-group" id="opFilters"><label>Opérateurs</label></div>
+    <div class="filter-group" id="actionFilters"><label>Actions</label></div>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script>
+    const map = L.map('map').setView([46.5, 2.5], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const operateur_map = {
+      'ORANGE': 'ora',
+      'FREE MOBILE': 'fmb',
+      'SFR': 'sfr',
+      'BOUYGUES TELECOM': 'byt',
+      'TELCO OI': 'fmb',
+      'SRR': 'sfr',
+      'FREE CARAIBES': 'fmb',
+      'ZEOP': 'zop',
+      'DIGICEL': 'dig',
+      'GOUV NELLE CALEDONIE (OPT)': 'opt',
+      'OUTREMER TELECOM': 'ott',
+      'PMT/VODAFONE': 'pmt',
+      'MISC': 'misc'
+    };
+
+    const allMarkers = [];
+    const markerCluster = L.markerClusterGroup();
+    map.addLayer(markerCluster);
+
+    const opContainer = document.getElementById('opFilters');
+    const technoContainer = document.getElementById('technoFilters');
+    const freqContainer = document.getElementById('freqFilters');
+    const actionContainer = document.getElementById('actionFilters');
+
+    const operators = new Set();
+    const technos = new Set();
+    const freqs = new Set();
+    const actions = new Set();
+
+    const activeFilters = {
+      operateurs: new Set(),
+      technos: new Set(),
+      freqs: new Set(),
+      actions: new Set()
+    };
+
+    const extractBaseTech = tech => tech.replace(/\s*\d{3,4}$/, '').trim();
+    const extractFreq = tech => (tech.match(/(\d{3,4})$/) || [])[1] || null;
+
+    const getCheckedValues = container => new Set([...container.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value));
+
+    function updateMarkers() {
+      markerCluster.clearLayers();
+      activeFilters.operateurs = getCheckedValues(opContainer);
+      activeFilters.technos = getCheckedValues(technoContainer);
+      activeFilters.freqs = getCheckedValues(freqContainer);
+      activeFilters.actions = getCheckedValues(actionContainer);
+
+      for (const { marker, row } of allMarkers) {
+        const techs = row.technologie.split(',').map(t => t.trim());
+        const baseTechs = techs.map(extractBaseTech);
+        const freqsArr = techs.map(extractFreq).filter(Boolean);
+
+        const matchOp = activeFilters.operateurs.has(row.operateur);
+        const matchAction = activeFilters.actions.has(row.action);
+        const techFreqMatch = techs.some(tech => {
+          const base = extractBaseTech(tech);
+          const freq = extractFreq(tech);
+          return activeFilters.technos.has(base) && activeFilters.freqs.has(freq);
+        });
+
+        if (matchOp && techFreqMatch && matchAction) {
+          markerCluster.addLayer(marker);
+        }
+      }
+    }
+
+    function createCheckbox(container, name, type) {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = name;
+      checkbox.checked = true;
+      checkbox.addEventListener('change', updateMarkers);
+      label.appendChild(checkbox);
+      label.append(' ' + name);
+      container.appendChild(label);
+      activeFilters[type].add(name);
+    }
+
+    function generatePopupContent(row) {
+      const [latitude, longitude] = row.coordonnees.split(',').map(s => s.trim());
+      const footer = `${row.type_support} - ${row.hauteur_support} - ${row.proprietaire_support}`;
+      console.log(row.proprietaire_support)
+      const operator_colors = {
+        "BOUYGUES TELECOM": "#009BCE", "FREE MOBILE": "#6D6E71", "SFR": "#E40012", "ORANGE": "#FD7B02",
+        "TELCO OI": "#6D6E71", "SRR": "#E40012", "FREE CARAIBES": "#6D6E71", "ZEOP": "#681260",
+        "DIGICEL": "#E4002B", "GOUV NELLE CALEDONIE (OPT)": "#292C83", "OUTREMER TELECOM": "#DE006F",
+        "PMT/VODAFONE": "#FF0E00"
+      };
+
+      const bandeau_couleur = operator_colors[row.operateur] || "#000000";
+      const bandeau_texte = `<a href='https://data.anfr.fr/visualisation/map/?id=observatoire_2g_3g_4g&location=17,${latitude},${longitude}' target='_blank' style='color:#FFFFFF;'>Support n°${row.id_support}</a>`;
+
+      let links_html = `
+        <a href='https://cartoradio.fr/index.html#/cartographie/lonlat/${longitude}/${latitude}' target='_blank' class="icone">
+          <img src="https://fraetech.github.io/maj-hebdo/icons/cartoradio.avif" alt="Cartoradio">
+        </a>
+        <a href='https://www.google.fr/maps/place/${latitude},${longitude}' target='_blank' class="icone">
+          <img src="https://fraetech.github.io/maj-hebdo/icons/maps.avif" alt="Google Maps">
+        </a>`;
+      if (row.operateur === 'FREE MOBILE' || row.operateur === 'TELCO OI') {
+        links_html += `
+        <a href='https://rncmobile.net/site/${latitude},${longitude}' target='_blank' class="icone">
+          <img src="https://fraetech.github.io/maj-hebdo/icons/rnc.avif" alt="RNC Mobile">
+        </a>`;
+      }
+
+      const titre = `<strong>${row.adresse}</strong>`;
+      let html_content = "<ul>";
+      const actionFields = {
+        "AJO": "Nouvelle(s) fréquence(s)",
+        "ALL": "Activation fréquence",
+        "EXT": "Extinction fréquence",
+        "SUP": "Suppression fréquence",
+        "CHA": "Changement d'adresse. Ancienne adresse",
+        "CHL": "Changement de localisation",
+        "CHI": "Changement ID support. Ancien ID"
+      };
+
+      const actionCode = row.action;
+      const actionData = row.technologie;
+
+      if (actionFields[actionCode]) {
+        const data = actionData.split(';').map(x => x.trim()).filter(Boolean).join(', ');
+        if (data) {
+          html_content += `<li><strong>${actionFields[actionCode]} :</strong><br> ${data}</li>`;
+        }
+      }
+      html_content += "</ul>";
+
+      return `
+        <div class="bandeau" style="background-color: ${bandeau_couleur};">${bandeau_texte}</div>
+        <div class="icone-container">${links_html}</div>
+        <div class="titre">${titre}</div>
+        <div class="contenu">${html_content}</div>
+        <div class="titre">${footer}</div>`;
+    }
+
+    function csvToRows(text) {
+      const lines = text.trim().split('\n').slice(1);
+      return lines.map(line => {
+        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''));
+        return {
+          id_support: values[0], operateur: values[1], action: values[2], technologie: values[3],
+          adresse: values[4], code_insee: values[5], coordonnees: values[6],
+          type_support: values[7], hauteur_support: values[8], proprietaire_support: values[9],
+          technologie_set: values[10]
+        };
+      });
+    }
+
+    fetch('https://fraetech.github.io/latest.csv')
+      .then(res => res.text())
+      .then(text => {
+        const rows = csvToRows(text);
+        for (const row of rows) {
+          const [lat, lon] = row.coordonnees.split(',').map(parseFloat);
+          if (isNaN(lat) || isNaN(lon)) continue;
+
+          const opId = operateur_map[row.operateur] || 'misc';
+          const actionId = (row.action || 'unknown').toLowerCase();
+          const iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}_${actionId}.avif`;
+
+          const icon = L.icon({
+            iconUrl, iconSize: [48, 48], iconAnchor: [16, 32], popupAnchor: [0, -32]
+          });
+
+          const popupContent = generatePopupContent(row);
+          const marker = L.marker([lat, lon], { icon }).bindPopup(popupContent);
+          allMarkers.push({ marker, row });
+          markerCluster.addLayer(marker);
+
+          operators.add(row.operateur);
+          actions.add(row.action);
+          row.technologie.split(',').map(t => t.trim()).forEach(t => {
+            technos.add(extractBaseTech(t));
+            const freq = extractFreq(t);
+            if (freq) freqs.add(freq);
+          });
+        }
+
+        operators.forEach(op => createCheckbox(opContainer, op, 'operateurs'));
+        actions.forEach(a => createCheckbox(actionContainer, a, 'actions'));
+        technos.forEach(t => createCheckbox(technoContainer, t, 'technos'));
+        freqs.forEach(f => createCheckbox(freqContainer, f, 'freqs'));
+      });
+  </script>
+</body>
+</html>
