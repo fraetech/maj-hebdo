@@ -124,7 +124,7 @@
     <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Carte Free</a>,
     <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Carte Orange</a>,
     <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">Carte SFR</a><br>
-    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.23</small></p>
+    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.24</small></p>
   </div>
 
   <div class="filters">
@@ -132,6 +132,8 @@
     <div class="filter-group" id="freqFilters"><label>Fréquences</label></div>
     <div class="filter-group" id="opFilters"><label>Opérateurs</label></div>
     <div class="filter-group" id="actionFilters"><label>Actions</label></div>
+    <div class="filter-group" id="zbFilter"><label>Zone Blanche</label></div>
+    <div class="filter-group" id="newSiteFilter"><label>Sites Neufs</label></div>
   </div>
   <div id="map"></div>
 
@@ -167,6 +169,8 @@
     const technoContainer = document.getElementById('technoFilters');
     const freqContainer = document.getElementById('freqFilters');
     const actionContainer = document.getElementById('actionFilters');
+    const zbContainer = document.getElementById('zbFilter');
+    const newSiteContainer = document.getElementById('newSiteFilter');
 
     const operators = new Set();
     const technos = new Set();
@@ -177,7 +181,9 @@
       operateurs: new Set(),
       technos: new Set(),
       freqs: new Set(),
-      actions: new Set()
+      actions: new Set(),
+      zb: new Set(['true', 'false']),
+      new: new Set(['true', 'false'])
     };
 
     const extractBaseTech = tech => tech.replace(/\s*\d{3,4}$/, '').trim();
@@ -191,6 +197,8 @@
       activeFilters.technos = getCheckedValues(technoContainer);
       activeFilters.freqs = getCheckedValues(freqContainer);
       activeFilters.actions = getCheckedValues(actionContainer);
+      activeFilters.zb = getCheckedValues(zbContainer);
+      activeFilters.new = getCheckedValues(newSiteContainer);
 
       for (const { marker, row } of allMarkers) {
         const techs = row.technologie.split(',').map(t => t.trim());
@@ -204,8 +212,10 @@
           const freq = extractFreq(tech);
           return activeFilters.technos.has(base) && activeFilters.freqs.has(freq);
         });
+        const matchZB = activeFilters.zb.has(row.is_zb);
+        const matchNew = activeFilters.new.has(row.is_new);
 
-        if (matchOp && techFreqMatch && matchAction) {
+        if (matchOp && techFreqMatch && matchAction && matchZB && matchNew) {
           markerCluster.addLayer(marker);
         }
       }
@@ -227,7 +237,6 @@
     function generatePopupContent(row) {
       const [latitude, longitude] = row.coordonnees.split(',').map(s => s.trim());
       const footer = `${row.type_support} - ${row.hauteur_support} - ${row.proprietaire_support}`;
-      console.log(row.proprietaire_support)
       const operator_colors = {
         "BOUYGUES TELECOM": "#009BCE", "FREE MOBILE": "#6D6E71", "SFR": "#E40012", "ORANGE": "#FD7B02",
         "TELCO OI": "#6D6E71", "SRR": "#E40012", "FREE CARAIBES": "#6D6E71", "ZEOP": "#681260",
@@ -291,7 +300,7 @@
           id_support: values[0], operateur: values[1], action: values[2], technologie: values[3],
           adresse: values[4], code_insee: values[5], coordonnees: values[6],
           type_support: values[7], hauteur_support: values[8], proprietaire_support: values[9],
-          technologie_set: values[10]
+          is_zb: values[10].toLowerCase().trim(), is_new: values[11].toLowerCase().trim()
         };
       });
     }
@@ -330,6 +339,10 @@
         actions.forEach(a => createCheckbox(actionContainer, a, 'actions'));
         technos.forEach(t => createCheckbox(technoContainer, t, 'technos'));
         freqs.forEach(f => createCheckbox(freqContainer, f, 'freqs'));
+        createCheckbox(zbContainer, 'true', 'zb');
+        createCheckbox(zbContainer, 'false', 'zb');
+        createCheckbox(newSiteContainer, 'true', 'new');
+        createCheckbox(newSiteContainer, 'false', 'new');
       });
   </script>
 </body>
