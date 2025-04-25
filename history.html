@@ -101,7 +101,7 @@
         grouped[type].sort((a, b) => a.label.localeCompare(b.label)).forEach(item => {
           const li = document.createElement('li');
           const link = document.createElement('a');
-          link.href = `https://fraetech.github.io/beta.html?csv=${item.path}`;
+          link.href = `https://fraetech.github.io/maj-hebdo/beta.html?csv=${item.path}`;
           link.textContent = item.label;
           li.appendChild(link);
           ul.appendChild(li);
