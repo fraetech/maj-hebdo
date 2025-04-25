@@ -1,8 +1,4 @@
 type,label,path
-hebdo,Semaine 17 - 2025,hebdo/S17_2025.csv
-hebdo,Semaine 35 - 2025,hebdo/S35_2025.csv
-hebdo,Semaine 39 - 2025,hebdo/S39_2025.csv
-hebdo,Semaine 30 - 2025,hebdo/S30_2025.csv
 hebdo,Semaine 51 - 2024,hebdo/S51_2024.csv
 hebdo,Semaine 2 - 2025,hebdo/S02_2025.csv
 hebdo,Semaine 3 - 2025,hebdo/S03_2025.csv
@@ -13,5 +9,6 @@ hebdo,Semaine 6 - 2025,hebdo/S06_2025.csv
 hebdo,Semaine 7 - 2025,hebdo/S07_2025.csv
 hebdo,Semaine 8 - 2025,hebdo/S08_2025.csv
 hebdo,Semaine 9 - 2025,hebdo/S09_2025.csv
-mensu,Fã©vrier - 2025,mensu/02_25.csv
+mensu,Février - 2025,mensu/02_25.csv
 hebdo,Semaine 10 - 2025,hebdo/S10_2025.csv
+hebdo,Semaine 11 - 2025,hebdo/S11_2025.csv
