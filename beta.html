@@ -306,11 +306,12 @@
     }
     const urlParams = new URLSearchParams(window.location.search);
     const csvPath = urlParams.get('csv')
+    let fullUrl
     if (csvPath) {
-      const fullUrl = `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}`;
+      fullUrl = `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}`;
     }
     else {
-      const fullUrl = 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/index.csv';
+      fullUrl = 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/index.csv';
     }
     fetch(fullUrl)
       .then(res => res.text())
