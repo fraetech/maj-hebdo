@@ -1,5 +1,7 @@
 type,label,path
-mensu,Janvier - 2024,mensu/01_24.csv
-hebdo,Semaine 1 - 2024,hebdo/S01_2024.csv
-trim,Trimestre 1 - 2024,trim/T1_2024.csv
 hebdo,Semaine 17 - 2025,hebdo/S17_2025.csv
+hebdo,Semaine 35 - 2025,hebdo/S35_2025.csv
+hebdo,Semaine 39 - 2025,hebdo/S39_2025.csv
+hebdo,Semaine 30 - 2025,hebdo/S30_2025.csv
+hebdo,Semaine 51 - 2024,hebdo/S51_2024.csv
+hebdo,Semaine 2 - 2025,hebdo/S02_2025.csv
