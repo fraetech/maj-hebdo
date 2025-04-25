@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historique MAJ ANFR</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+    }
+    .column {
+      background: white;
+      padding: 20px;
+      width: 300px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .column h2 {
+      text-align: center;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .column ul {
+      list-style: none;
+      padding: 0;
+    }
+    .column li {
+      margin: 10px 0;
+    }
+    .column a {
+      text-decoration: none;
+      color: #007BFF;
+    }
+    .column a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Historique des MAJ ANFR</h1>
+
+  <div class="container" id="columns-container">
+  </div>
+
+  <script>
+    async function fetchAndBuildColumns() {
+      const response = await fetch('https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/history.csv');
+      const csvText = await response.text();
+      const rows = csvText.trim().split('\n').slice(1); // skip header
+
+      const data = rows.map(row => {
+        const [type, label, path] = row.split(',');
+        return { type, label, path };
+      });
+
+      const grouped = {
+        hebdo: [],
+        mensu: [],
+        trim: []
+      };
+
+      data.forEach(entry => {
+        if (grouped[entry.type]) {
+          grouped[entry.type].push(entry);
+        }
+      });
+
+      const container = document.getElementById('columns-container');
+      for (let type of ['hebdo', 'mensu', 'trim']) {
+        const column = document.createElement('div');
+        column.className = 'column';
+
+        const titleMap = {
+          hebdo: 'Hebdomadaire',
+          mensu: 'Mensuel',
+          trim: 'Trimestriel'
+        };
+
+        column.innerHTML = `<h2>${titleMap[type]}</h2><ul></ul>`;
+        const ul = column.querySelector('ul');
+
+        grouped[type].sort((a, b) => a.label.localeCompare(b.label)).forEach(item => {
+          const li = document.createElement('li');
+          const link = document.createElement('a');
+          link.href = `https://fraetech.github.io/beta.html?csv=${item.path}`;
+          link.textContent = item.label;
+          li.appendChild(link);
+          ul.appendChild(li);
+        });
+
+        container.appendChild(column);
+      }
+    }
+
+    fetchAndBuildColumns().catch(err => {
+      console.error("Erreur de chargement du CSV :", err);
+    });
+  </script>
+
+</body>
+</html>

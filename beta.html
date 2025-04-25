@@ -304,8 +304,15 @@
         };
       });
     }
-
-    fetch('https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/index.csv')
+    const urlParams = new URLSearchParams(window.location.search);
+    const csvPath = urlParams.get('csv')
+    if (csvPath) {
+      const fullUrl = `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}`;
+    }
+    else {
+      const fullUrl = 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/index.csv';
+    }
+    fetch(fullUrl)
       .then(res => res.text())
       .then(text => {
         const rows = csvToRows(text);
