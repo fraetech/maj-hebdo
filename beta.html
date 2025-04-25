@@ -305,7 +305,7 @@
       });
     }
 
-    fetch('https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/latest.csv')
+    fetch('https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/index.csv')
       .then(res => res.text())
       .then(text => {
         const rows = csvToRows(text);
