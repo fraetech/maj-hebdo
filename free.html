@@ -18,123 +18,201 @@
       font-style: normal;
     }
 
-    #map { height: 90vh; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
 
-    .filters {
+    #map {
+      height: 100%;
+      width: 100%;
+      z-index: 1;
+    }
+
+    #message {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background-color: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #closeButton {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: transparent;
+      border: none;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .leaflet-control.custom-filter-control {
+      background: white;
       padding: 10px;
-      max-height: 10vh;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      font-size: 14px;
+      width: 250px;
+      max-height: 80vh;
       overflow-y: auto;
-      display: flex;
-      gap: 2rem;
-      flex-wrap: wrap;
+    }
+
+    .filter-category {
+      font-weight: bold;
+      margin-top: 10px;
+      cursor: pointer;
+      background: #f1f1f1;
+      padding: 5px;
+      border-radius: 4px;
     }
 
     .filter-group {
-      display: flex;
-      flex-direction: column;
-      max-height: 100%;
-      overflow-y: auto;
+      display: block;
+      padding-left: 10px;
+      margin-top: 5px;
+      max-height: 0;
+      overflow: hidden;
     }
 
-    .filter-group label:first-child {
+    .filter-group label {
+      display: block;
+      margin: 4px 0;
+    }
+    
+    .leaflet-control.custom-filter-control.collapsed {
+      width: auto;
+      height: auto;
+      padding: 6px 10px;
       font-weight: bold;
-      margin-bottom: 0.5rem;
+      cursor: pointer;
+      text-align: center;
+    }
+    
+    .leaflet-control.custom-filter-control.collapsed::after {
+      content: "Filtres";
+    }
+    
+    .leaflet-control.custom-filter-control.expanded {
+      transition: all 0.3s ease;
+      width: 250px;
+      padding: 10px;
+    }
+    
+    .filter-group {
+      transition: max-height 0.3s ease;
+      overflow: hidden;
+    }
+
+    .reset-filters {
+      display: block;
+      margin: 10px 0;
+      padding: 6px 10px;
+      background-color: #f1f1f1;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .reset-filters:hover {
+      background-color: #e0e0e0;
+    }
+
+    /* Styles pour les popups */
+    .leaflet-popup-content {
+      text-align: center;
+      margin: 10px;
     }
 
     .bandeau {
-      color: white;
+      margin: -12px -20px 10px -20px;
+      padding: 10px;
       text-align: center;
-      padding: 5px;
-      font-size: 1.2em;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .bandeau a {
+      text-decoration: none;
       font-weight: bold;
-      line-height: 1.2;
     }
 
     .icone-container {
       display: flex;
       justify-content: center;
       gap: 10px;
-      margin: 10px 0;
+      margin: 12px 0;
     }
 
     .icone {
-      width: 40px;
-      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #f0f0f0;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: transform 0.2s, background-color 0.2s;
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      background-color: #f5f5f5;
+      padding: 5px;
+      transition: all 0.2s ease;
     }
 
     .icone:hover {
-      background-color: #007BFF;
-      transform: scale(1.1);
+      background-color: #e0e0e0;
+      transform: scale(1.05);
     }
 
     .icone img {
-      width: 20px;
-      height: 20px;
+      max-width: 40px;
+      max-height: 40px;
     }
 
     .titre {
-      text-align: center;
-      font-size: 1em;
-      margin: 5px 0;
-      color: #333;
+      margin: 8px 0;
     }
 
     .contenu {
-      padding: 10px;
-      background-color: #f9f9f9;
+      margin: 12px 0;
+      text-align: left;
     }
 
-    #message {
-      position: fixed;
-      bottom: 50px; left: 50px;
-      z-index: 1000;
-      background-color: white;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    .action-groupe {
+      margin-bottom: 8px;
     }
 
-    #closeButton {
-      position: absolute;
-      top: 5px; right: 5px;
-      background-color: transparent;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
+    .action-titre {
+      font-weight: bold;
+      margin-bottom: 4px;
     }
+
     strong { font-weight: bold; }
   </style>
 </head>
 <body>
+
   <div id="message">
     <button id="closeButton">&times;</button>
     <h4><strong>[BETA] Dernière MAJ ANFR dispo [BETA]</strong></h4>
-    <p>Vous pouvez choisir les actions à afficher à l'aide du layer control (en haut à droite).<br>
-    Questions, remarques et suggestions -> <a href='https://github.com/fraetech/maj-hebdo/issues' target='_blank'>GitHub MAJ_Hebdo</a>.<br>
-    Vous cherchez plutôt les modifications d'un opérateur en particulier ?<br>
+    <p>Vous pouvez filtrer les supports à afficher à l'aide du bouton "Filtres" (en haut à droite).<br>
+    Questions, remarques et suggestions :<br> <a href='https://github.com/fraetech/maj-hebdo/issues' target='_blank'>GitHub MAJ-Hebdo</a><br>
+    Une carte propre à chaque opérateur est également disponible :<br>
     <a href='https://fraetech.github.io/maj-hebdo/' target="_self">Tous</a>,
-    <a href='https://fraetech.github.io/maj-hebdo/bouygues.html' target="_self">Carte Bouygues</a>,
-    <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Carte Free</a>,
-    <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Carte Orange</a>,
-    <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">Carte SFR</a><br>
-    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.24</small></p>
+    <a href='https://fraetech.github.io/maj-hebdo/bouygues.html' target="_self">Bouygues</a>,
+    <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Free (cette carte)</a>,
+    <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Orange</a> et
+    <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">SFR</a><br>
+    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.26r</small></p>
   </div>
 
-  <div class="filters">
-    <div class="filter-group" id="technoFilters"><label>Technologies</label></div>
-    <div class="filter-group" id="freqFilters"><label>Fréquences</label></div>
-    <div class="filter-group" id="opFilters"><label>Opérateurs</label></div>
-    <div class="filter-group" id="actionFilters"><label>Actions</label></div>
-    <div class="filter-group" id="zbFilter"><label>Zone Blanche</label></div>
-    <div class="filter-group" id="newSiteFilter"><label>Sites Neufs</label></div>
-  </div>
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -146,31 +224,34 @@
     }).addTo(map);
 
     const operateur_map = {
-      'ORANGE': 'ora',
-      'FREE MOBILE': 'fmb',
-      'SFR': 'sfr',
-      'BOUYGUES TELECOM': 'byt',
-      'TELCO OI': 'fmb',
-      'SRR': 'sfr',
-      'FREE CARAIBES': 'fmb',
-      'ZEOP': 'zop',
-      'DIGICEL': 'dig',
-      'GOUV NELLE CALEDONIE (OPT)': 'opt',
-      'OUTREMER TELECOM': 'ott',
-      'PMT/VODAFONE': 'pmt',
-      'MISC': 'misc'
+      'ORANGE': 'ora', 'FREE MOBILE': 'fmb', 'SFR': 'sfr', 'BOUYGUES TELECOM': 'byt',
+      'TELCO OI': 'fmb', 'SRR': 'sfr', 'FREE CARAIBES': 'fmb', 'ZEOP': 'zop',
+      'DIGICEL': 'dig', 'GOUV NELLE CALEDONIE (OPT)': 'opt', 'OUTREMER TELECOM': 'ott',
+      'PMT/VODAFONE': 'pmt', 'MISC': 'misc'
+    };
+    
+    // Mapping pour les actions
+    const action_map = {
+      'ALL': 'Activation fréquence',
+      'AJO': 'Ajout fréquence',
+      'SUP': 'Suppression fréquence',
+      'EXT': 'Extinction fréquence'
+    };
+    
+    // Mapping pour les technologies (dans l'ordre: 2G, 3G, 4G, 5G)
+    const tech_map = {
+      'GSM': 'GSM (2G)',
+      'UMTS': 'UMTS (3G)',
+      'LTE': 'LTE (4G)',
+      '5G NR': 'NR (5G)'
     };
 
-    const allMarkers = [];
+    // Ordre des technologies pour l'affichage
+    const tech_order = ['GSM', 'UMTS', 'LTE', '5G NR'];
+
+    const markersById = new Map(); // Map pour stocker les marqueurs par ID de support
     const markerCluster = L.markerClusterGroup();
     map.addLayer(markerCluster);
-
-    const opContainer = document.getElementById('opFilters');
-    const technoContainer = document.getElementById('technoFilters');
-    const freqContainer = document.getElementById('freqFilters');
-    const actionContainer = document.getElementById('actionFilters');
-    const zbContainer = document.getElementById('zbFilter');
-    const newSiteContainer = document.getElementById('newSiteFilter');
 
     const operators = new Set();
     const technos = new Set();
@@ -186,42 +267,86 @@
       new: new Set(['true', 'false'])
     };
 
-    const extractBaseTech = tech => tech.replace(/\s*\d{3,4}$/, '').trim();
-    const extractFreq = tech => (tech.match(/(\d{3,4})$/) || [])[1] || null;
+    function extractBaseTech(tech) {
+      return tech.replace(/\s*\d{3,4}$/, '').trim();
+    }
 
-    const getCheckedValues = container => new Set([...container.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value));
+    function extractFreq(tech) {
+      return (tech.match(/(\d{3,4})$/) || [])[1] || null;
+    }
+
+    function getCheckedValues(container) {
+      return new Set([...container.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value));
+    }
+    
+    function getSelectedRadioValue(name) {
+      const radio = document.querySelector(`input[name="${name}"]:checked`);
+      if (radio) {
+        if (radio.value === 'all') {
+          return new Set(['true', 'false']);
+        } else {
+          return new Set([radio.value]);
+        }
+      }
+      return new Set(['true', 'false']); // Par défaut, tout est sélectionné
+    }
 
     function updateMarkers() {
+      activeFilters.operateurs = getCheckedValues(document.getElementById('opFilters'));
+      activeFilters.technos = getCheckedValues(document.getElementById('technoFilters'));
+      activeFilters.freqs = getCheckedValues(document.getElementById('freqFilters'));
+      activeFilters.actions = getCheckedValues(document.getElementById('actionFilters'));
+      activeFilters.zb = getSelectedRadioValue('zoneBlanche');
+      activeFilters.new = getSelectedRadioValue('siteNeuf');
+
       markerCluster.clearLayers();
-      activeFilters.operateurs = getCheckedValues(opContainer);
-      activeFilters.technos = getCheckedValues(technoContainer);
-      activeFilters.freqs = getCheckedValues(freqContainer);
-      activeFilters.actions = getCheckedValues(actionContainer);
-      activeFilters.zb = getCheckedValues(zbContainer);
-      activeFilters.new = getCheckedValues(newSiteContainer);
+      
+      for (const [supportId, markerData] of markersById.entries()) {
+        const { marker, actionsData } = markerData;
+        
+        // Un marqueur est affiché si au moins une de ses actions correspond aux filtres
+        let shouldDisplay = false;
+        
+        for (const actionData of actionsData) {
+          const techs = actionData.technologie.split(',').map(t => t.trim());
+          const matchOp = activeFilters.operateurs.has(actionData.operateur);
+          const matchAction = activeFilters.actions.has(actionData.action);
+          const techFreqMatch = techs.some(tech => {
+            const baseTech = extractBaseTech(tech);
+            const freq = extractFreq(tech);
+            return activeFilters.technos.has(baseTech) && activeFilters.freqs.has(freq);
+          });
+          const matchZB = activeFilters.zb.has(actionData.is_zb);
+          const matchNew = activeFilters.new.has(actionData.is_new);
 
-      for (const { marker, row } of allMarkers) {
-        const techs = row.technologie.split(',').map(t => t.trim());
-        const baseTechs = techs.map(extractBaseTech);
-        const freqsArr = techs.map(extractFreq).filter(Boolean);
-
-        const matchOp = activeFilters.operateurs.has(row.operateur);
-        const matchAction = activeFilters.actions.has(row.action);
-        const techFreqMatch = techs.some(tech => {
-          const base = extractBaseTech(tech);
-          const freq = extractFreq(tech);
-          return activeFilters.technos.has(base) && activeFilters.freqs.has(freq);
-        });
-        const matchZB = activeFilters.zb.has(row.is_zb);
-        const matchNew = activeFilters.new.has(row.is_new);
-
-        if (matchOp && techFreqMatch && matchAction && matchZB && matchNew) {
+          if (matchOp && techFreqMatch && matchAction && matchZB && matchNew) {
+            shouldDisplay = true;
+            break;
+          }
+        }
+        
+        if (shouldDisplay) {
           markerCluster.addLayer(marker);
         }
       }
     }
 
-    function createCheckbox(container, name, type) {
+    function resetAllFilters() {
+      // Cocher toutes les cases
+      document.querySelectorAll('.filter-group input[type="checkbox"]').forEach(cb => {
+        cb.checked = true;
+      });
+      
+      // Sélectionner "Toutes" pour les boutons radio
+      document.querySelectorAll('input[name="zoneBlanche"][value="all"], input[name="siteNeuf"][value="all"]').forEach(radio => {
+        radio.checked = true;
+      });
+      
+      // Mettre à jour les marqueurs
+      updateMarkers();
+    }
+
+    function createCheckbox(container, name, type, displayName = null) {
       const label = document.createElement('label');
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
@@ -229,14 +354,34 @@
       checkbox.checked = true;
       checkbox.addEventListener('change', updateMarkers);
       label.appendChild(checkbox);
-      label.append(' ' + name);
+      label.append(' ' + (displayName || name));
       container.appendChild(label);
       activeFilters[type].add(name);
     }
+    
+    function createRadioGroup(container, name, options) {
+      options.forEach((option, index) => {
+        const label = document.createElement('label');
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = name;
+        radio.value = option.value;
+        radio.checked = index === 0; // Premier élément coché par défaut
+        radio.addEventListener('change', updateMarkers);
+        label.appendChild(radio);
+        label.append(' ' + option.label);
+        container.appendChild(label);
+      });
+    }
 
-    function generatePopupContent(row) {
-      const [latitude, longitude] = row.coordonnees.split(',').map(s => s.trim());
-      const footer = `${row.type_support} - ${row.hauteur_support} - ${row.proprietaire_support}`;
+    function generatePopupContent(actionsData) {
+      if (!actionsData || actionsData.length === 0) return '';
+      
+      // On prend les informations communes du premier élément
+      const firstAction = actionsData[0];
+      const [latitude, longitude] = firstAction.coordonnees.split(',').map(s => s.trim());
+      const footer = `${firstAction.type_support} - ${firstAction.hauteur_support} - ${firstAction.proprietaire_support}`;
+      
       const operator_colors = {
         "BOUYGUES TELECOM": "#009BCE", "FREE MOBILE": "#6D6E71", "SFR": "#E40012", "ORANGE": "#FD7B02",
         "TELCO OI": "#6D6E71", "SRR": "#E40012", "FREE CARAIBES": "#6D6E71", "ZEOP": "#681260",
@@ -244,8 +389,8 @@
         "PMT/VODAFONE": "#FF0E00"
       };
 
-      const bandeau_couleur = operator_colors[row.operateur] || "#000000";
-      const bandeau_texte = `<a href='https://data.anfr.fr/visualisation/map/?id=observatoire_2g_3g_4g&location=17,${latitude},${longitude}' target='_blank' style='color:#FFFFFF;'>Support n°${row.id_support}</a>`;
+      const bandeau_couleur = operator_colors[firstAction.operateur] || "#000000";
+      const bandeau_texte = `<a href='https://data.anfr.fr/visualisation/map/?id=observatoire_2g_3g_4g&location=17,${latitude},${longitude}' target='_blank' style='color:#FFFFFF;'>Support n°${firstAction.id_support}</a>`;
 
       let links_html = `
         <a href='https://cartoradio.fr/index.html#/cartographie/lonlat/${longitude}/${latitude}' target='_blank' class="icone">
@@ -254,41 +399,37 @@
         <a href='https://www.google.fr/maps/place/${latitude},${longitude}' target='_blank' class="icone">
           <img src="https://fraetech.github.io/maj-hebdo/icons/maps.avif" alt="Google Maps">
         </a>`;
-      if (row.operateur === 'FREE MOBILE' || row.operateur === 'TELCO OI') {
+      if (firstAction.operateur === 'FREE MOBILE' || firstAction.operateur === 'TELCO OI') {
         links_html += `
         <a href='https://rncmobile.net/site/${latitude},${longitude}' target='_blank' class="icone">
           <img src="https://fraetech.github.io/maj-hebdo/icons/rnc.avif" alt="RNC Mobile">
         </a>`;
       }
 
-      const titre = `<strong>${row.adresse}</strong>`;
-      let html_content = "<ul>";
-      const actionFields = {
-        "AJO": "Nouvelle(s) fréquence(s)",
-        "ALL": "Activation fréquence",
-        "EXT": "Extinction fréquence",
-        "SUP": "Suppression fréquence",
-        "CHA": "Changement d'adresse. Ancienne adresse",
-        "CHL": "Changement de localisation",
-        "CHI": "Changement ID support. Ancien ID"
-      };
-
-      const actionCode = row.action;
-      const actionData = row.technologie;
-
-      if (actionFields[actionCode]) {
-        const data = actionData.split(';').map(x => x.trim()).filter(Boolean).join(', ');
-        if (data) {
-          html_content += `<li><strong>${actionFields[actionCode]} :</strong><br> ${data}</li>`;
+      // Regrouper les actions par type
+      const actionsByType = {};
+      actionsData.forEach(action => {
+        if (!actionsByType[action.action]) {
+          actionsByType[action.action] = [];
         }
+        actionsByType[action.action].push(action);
+      });
+
+      // Générer le contenu HTML pour chaque type d'action
+      let actionsHtml = '';
+      for (const [actionType, actions] of Object.entries(actionsByType)) {
+        const actionTitle = action_map[actionType] || actionType;
+        actionsHtml += `<div class="action-groupe">
+                          <div class="action-titre">${actionTitle} :</div>
+                          <div>${actions.map(a => a.technologie).join('<br>')}</div>
+                        </div>`;
       }
-      html_content += "</ul>";
 
       return `
         <div class="bandeau" style="background-color: ${bandeau_couleur};">${bandeau_texte}</div>
         <div class="icone-container">${links_html}</div>
-        <div class="titre">${titre}</div>
-        <div class="contenu">${html_content}</div>
+        <div class="titre"><strong>${firstAction.adresse}</strong></div>
+        <div class="contenu">${actionsHtml}</div>
         <div class="titre">${footer}</div>`;
     }
 
@@ -304,27 +445,115 @@
         };
       });
     }
-    fetch('https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/free.csv')
+
+    // Gestion fermeture bandeau message
+    document.getElementById('closeButton').addEventListener('click', () => {
+      document.getElementById('message').style.display = 'none';
+    });
+    map.on('movestart', () => {
+      const msg = document.getElementById('message');
+      if (msg) msg.style.display = 'none';
+    });
+
+    const FilterControl = L.Control.extend({
+      onAdd: function(map) {
+        const div = L.DomUtil.create('div', 'leaflet-control custom-filter-control collapsed');
+
+        div.innerHTML = `
+          <div class="filters-content" style="display:none;">
+            <button class="reset-filters" id="resetFilters">Réinitialiser tous les filtres</button>
+            <div class="filter-category">Technologies</div><div class="filter-group" id="technoFilters"></div>
+            <div class="filter-category">Fréquences</div><div class="filter-group" id="freqFilters"></div>
+            <div class="filter-category">Opérateurs</div><div class="filter-group" id="opFilters"></div>
+            <div class="filter-category">Actions</div><div class="filter-group" id="actionFilters"></div>
+            <div class="filter-category">Zone Blanche</div><div class="filter-group" id="zbFilter"></div>
+            <div class="filter-category">Sites Neufs</div><div class="filter-group" id="newSiteFilter"></div>
+          </div>
+        `;
+
+        // Gestionnaire d'événement pour ouvrir/fermer le conteneur principal des filtres
+        div.addEventListener('click', function (e) {
+          if (e.target === div || e.target.classList.contains('filters-content')) {
+            if (div.classList.contains('collapsed')) {
+              div.classList.remove('collapsed');
+              div.classList.add('expanded');
+              const content = div.querySelector('.filters-content');
+              if (content) {
+                content.style.display = 'block';
+              }
+            } else if (div.classList.contains('expanded') && (e.target === div || e.target.classList.contains('filters-content'))) {
+              div.classList.remove('expanded');
+              div.classList.add('collapsed');
+              const content = div.querySelector('.filters-content');
+              if (content) {
+                content.style.display = 'none';
+              }
+            }
+          }
+        });
+
+        // Arrêter la propagation des événements pour les éléments de filtre
+        div.querySelectorAll('.filter-group').forEach(group => {
+          group.addEventListener('click', (e) => {
+            e.stopPropagation();
+          });
+        });
+
+        map.on('movestart', () => {
+          const filterDiv = document.querySelector('.leaflet-control.custom-filter-control');
+          if (filterDiv) {
+            filterDiv.classList.remove('expanded');
+            filterDiv.classList.add('collapsed');
+            const content = filterDiv.querySelector('.filters-content');
+            if (content) {
+              content.style.display = 'none';
+            }
+          }
+          const msg = document.getElementById('message');
+          if (msg) msg.style.display = 'none';
+        });
+
+        // Gestion des catégories de filtres
+        div.querySelectorAll('.filter-category').forEach(cat => {
+          cat.addEventListener('click', (e) => {
+            e.stopPropagation(); // Empêcher la propagation vers le conteneur principal
+            const group = cat.nextElementSibling;
+            if (group.style.maxHeight) {
+              group.style.maxHeight = null;
+            } else {
+              group.style.maxHeight = group.scrollHeight + "px";
+            }
+          });
+        });
+
+        window.filtersReady = true;
+        return div;
+      }
+    });
+    map.addControl(new FilterControl({ position: 'topright' }));
+
+    // Chargement CSV
+    const urlParams = new URLSearchParams(window.location.search);
+    const csvPath = urlParams.get('csv');
+    let fullUrl = csvPath 
+      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}`
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/free.csv';
+
+    fetch(fullUrl)
       .then(res => res.text())
       .then(text => {
         const rows = csvToRows(text);
+        
+        // Regrouper les lignes par ID de support
+        const rowsBySupport = {};
         for (const row of rows) {
-          const [lat, lon] = row.coordonnees.split(',').map(parseFloat);
-          if (isNaN(lat) || isNaN(lon)) continue;
-
-          const opId = operateur_map[row.operateur] || 'misc';
-          const actionId = (row.action || 'unknown').toLowerCase();
-          const iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}_${actionId}.avif`;
-
-          const icon = L.icon({
-            iconUrl, iconSize: [48, 48], iconAnchor: [16, 32], popupAnchor: [0, -32]
-          });
-
-          const popupContent = generatePopupContent(row);
-          const marker = L.marker([lat, lon], { icon }).bindPopup(popupContent);
-          allMarkers.push({ marker, row });
-          markerCluster.addLayer(marker);
-
+          const supportId = row.id_support;
+          if (!rowsBySupport[supportId]) {
+            rowsBySupport[supportId] = [];
+          }
+          rowsBySupport[supportId].push(row);
+          
+          // Collecter les opérateurs, actions, technologies et fréquences
           operators.add(row.operateur);
           actions.add(row.action);
           row.technologie.split(',').map(t => t.trim()).forEach(t => {
@@ -333,15 +562,75 @@
             if (freq) freqs.add(freq);
           });
         }
+        
+        // Créer les marqueurs regroupés par support
+        for (const [supportId, supportRows] of Object.entries(rowsBySupport)) {
+          const firstRow = supportRows[0]; // Utiliser la première ligne pour les coordonnées
+          const [lat, lon] = firstRow.coordonnees.split(',').map(parseFloat);
+          if (isNaN(lat) || isNaN(lon)) continue;
 
-        operators.forEach(op => createCheckbox(opContainer, op, 'operateurs'));
-        actions.forEach(a => createCheckbox(actionContainer, a, 'actions'));
-        technos.forEach(t => createCheckbox(technoContainer, t, 'technos'));
-        freqs.forEach(f => createCheckbox(freqContainer, f, 'freqs'));
-        createCheckbox(zbContainer, 'true', 'zb');
-        createCheckbox(zbContainer, 'false', 'zb');
-        createCheckbox(newSiteContainer, 'true', 'new');
-        createCheckbox(newSiteContainer, 'false', 'new');
+          const opId = operateur_map[firstRow.operateur] || 'misc';
+          const actionId = (firstRow.action || 'unknown').toLowerCase();
+          const iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}_${actionId}.avif`;
+
+          const marker = L.marker([lat, lon], { 
+            icon: L.icon({ iconUrl, iconSize: [48,48], iconAnchor:[24,48] }) 
+          }).bindPopup(generatePopupContent(supportRows));
+          
+          markerCluster.addLayer(marker);
+          markersById.set(supportId, { marker, actionsData: supportRows });
+        }
+
+        const waitForFilters = setInterval(() => {
+          if (window.filtersReady) {
+            clearInterval(waitForFilters);
+
+            // Tri alphabétique des opérateurs
+            const sortedOperators = [...operators].sort();
+            sortedOperators.forEach(op => createCheckbox(document.getElementById('opFilters'), op, 'operateurs'));
+            
+            // Tri des actions avec les noms traduits
+            const sortedActions = [...actions].sort();
+            sortedActions.forEach(a => createCheckbox(document.getElementById('actionFilters'), a, 'actions', action_map[a] || a));
+            
+            // Tri des technologies selon l'ordre de génération (2G, 3G, 4G, 5G)
+            const sortedTechnos = [...technos].sort((a, b) => {
+              return tech_order.indexOf(a) - tech_order.indexOf(b);
+            });
+            sortedTechnos.forEach(t => createCheckbox(document.getElementById('technoFilters'), t, 'technos', tech_map[t] || t));
+            
+            // Tri numérique des fréquences
+            const sortedFreqs = [...freqs].map(Number).sort((a, b) => a - b).map(String);
+            sortedFreqs.forEach(f => createCheckbox(document.getElementById('freqFilters'), f, 'freqs'));
+            
+            // Radio buttons pour Zone Blanche
+            createRadioGroup(document.getElementById('zbFilter'), 'zoneBlanche', [
+              { value: 'all', label: 'Toutes' },
+              { value: 'true', label: 'Zone blanche' },
+              { value: 'false', label: 'Non zone blanche' }
+            ]);
+            
+            // Radio buttons pour Sites Neufs
+            createRadioGroup(document.getElementById('newSiteFilter'), 'siteNeuf', [
+              { value: 'all', label: 'Tous' },
+              { value: 'true', label: 'Site neuf' },
+              { value: 'false', label: 'Site existant' }
+            ]);
+            
+            // Arrêter la propagation pour les éléments de formulaire et leurs labels
+            document.querySelectorAll('.filter-group label, .filter-group input').forEach(el => {
+              el.addEventListener('click', (e) => {
+                e.stopPropagation();
+              });
+            });
+
+            // Ajouter l'événement pour le bouton de réinitialisation
+            document.getElementById('resetFilters').addEventListener('click', (e) => {
+              e.stopPropagation();
+              resetAllFilters();
+            });
+          }
+        }, 50);
       });
   </script>
 </body>
