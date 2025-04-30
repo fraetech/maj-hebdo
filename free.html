@@ -212,7 +212,7 @@
     <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Free (cette carte)</a>,
     <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Orange</a> et
     <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">SFR</a><br>
-    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.26r</small></p>
+    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.29r</small></p>
   </div>
 
   <div id="map"></div>
@@ -547,40 +547,48 @@
         const rows = csvToRows(text);
         
         // Regrouper les lignes par ID de support
-        const rowsBySupport = {};
-        for (const row of rows) {
-          const supportId = row.id_support;
-          if (!rowsBySupport[supportId]) {
-            rowsBySupport[supportId] = [];
+        const rowsBySupportAndOperator = {};
+          for (const row of rows) {
+            const supportId = row.id_support;
+            const operateur = row.operateur;
+            const key = `${supportId}_${operateur}`;
+            
+            if (!rowsBySupportAndOperator[key]) {
+              rowsBySupportAndOperator[key] = [];
+            }
+            rowsBySupportAndOperator[key].push(row);
+            
+            // Collecter les opérateurs, actions, technologies et fréquences
+            operators.add(operateur);
+            actions.add(row.action);
+            row.technologie.split(',').map(t => t.trim()).forEach(t => {
+              technos.add(extractBaseTech(t));
+              const freq = extractFreq(t);
+              if (freq) freqs.add(freq);
+            });
           }
-          rowsBySupport[supportId].push(row);
-          
-          // Collecter les opérateurs, actions, technologies et fréquences
-          operators.add(row.operateur);
-          actions.add(row.action);
-          row.technologie.split(',').map(t => t.trim()).forEach(t => {
-            technos.add(extractBaseTech(t));
-            const freq = extractFreq(t);
-            if (freq) freqs.add(freq);
-          });
-        }
         
         // Créer les marqueurs regroupés par support
-        for (const [supportId, supportRows] of Object.entries(rowsBySupport)) {
+        for (const [key, supportRows] of Object.entries(rowsBySupportAndOperator)) {
           const firstRow = supportRows[0]; // Utiliser la première ligne pour les coordonnées
           const [lat, lon] = firstRow.coordonnees.split(',').map(parseFloat);
           if (isNaN(lat) || isNaN(lon)) continue;
 
-          const opId = operateur_map[firstRow.operateur] || 'misc';
+          const supportId = firstRow.id_support;
+          const operateur = firstRow.operateur;
+          const opId = operateur_map[operateur] || 'misc';
           const actionId = (firstRow.action || 'unknown').toLowerCase();
           const iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}_${actionId}.avif`;
 
+          // [FEATURE REQUEST 3] - Ajout du titre avec l'opérateur pour le hover
           const marker = L.marker([lat, lon], { 
-            icon: L.icon({ iconUrl, iconSize: [48,48], iconAnchor:[24,48] }) 
+            icon: L.icon({ iconUrl, iconSize: [48,48], iconAnchor:[24,48] }),
+            title: operateur // Affiche l'opérateur au survol
           }).bindPopup(generatePopupContent(supportRows));
           
           markerCluster.addLayer(marker);
-          markersById.set(supportId, { marker, actionsData: supportRows });
+          // Stockage des marqueurs avec un ID composé du support et de l'opérateur
+          markersById.set(key, { marker, actionsData: supportRows, supportId: supportId });
         }
 
         const waitForFilters = setInterval(() => {
