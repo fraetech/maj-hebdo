@@ -201,18 +201,18 @@
 
   <div id="message">
     <button id="closeButton">&times;</button>
-    <h4><strong>[BETA] Dernière MAJ ANFR dispo [BETA]</strong></h4>
+    <h4><strong>Chargement... (peut prendre du temps sur les grosses MAJs)</strong></h4>
     <p>Vous pouvez filtrer les supports à afficher à l'aide du bouton "Filtres" (en haut à droite).<br>
     Questions, remarques et suggestions :<br> <a href='https://github.com/fraetech/maj-hebdo/issues' target='_blank'>GitHub MAJ-Hebdo</a><br>
-    Un historique des mises à jour (sur un an) est dispo : <br>
-    <a href='https://fraetech.github.io/maj-hebdo/history.html' target="_self">Historique des MAJ</a><br>
+    L'historique (sur un an) des mises à jour c'est par ici : <br>
+    <a href='https://fraetech.github.io/maj-hebdo/history.html' target="_self">Historique des mises à jour</a><br>
     Une carte propre à chaque opérateur est également disponible :<br>
     <a href='https://fraetech.github.io/maj-hebdo/' target="_self">Tous</a> (cette carte),
     <a href='https://fraetech.github.io/maj-hebdo/bouygues.html' target="_self">Bouygues</a>,
     <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Free</a>,
     <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Orange</a> et
     <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">SFR</a><br>
-    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.29r</small></p>
+    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.30b</small></p>
   </div>
 
   <div id="map"></div>
@@ -537,11 +537,15 @@
     // Chargement CSV
     const urlParams = new URLSearchParams(window.location.search);
     const csvPath = urlParams.get('csv');
-    let fullUrl = csvPath 
-      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}`
+    let fullUrlCsv = csvPath 
+      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}.csv`
       : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/index.csv';
+    
+      let fullUrlTxt = csvPath 
+      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}.txt`
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/timestamp.txt';
 
-    fetch(fullUrl)
+    fetch(fullUrlCsv)
       .then(res => res.text())
       .then(text => {
         const rows = csvToRows(text);
@@ -580,7 +584,6 @@
           const actionId = (firstRow.action || 'unknown').toLowerCase();
           const iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}_${actionId}.avif`;
 
-          // [FEATURE REQUEST 3] - Ajout du titre avec l'opérateur pour le hover
           const marker = L.marker([lat, lon], { 
             icon: L.icon({ iconUrl, iconSize: [48,48], iconAnchor:[24,48] }),
             title: operateur // Affiche l'opérateur au survol
@@ -642,6 +645,15 @@
           }
         }, 50);
       });
+    fetch(fullUrlTxt)
+    .then(res => res.text())
+    .then(text => {
+      const strongElem = document.querySelector("#message h4 strong");
+      if (strongElem) {
+        strongElem.textContent = `MAJ ANFR du ${text.trim()}`;
+      }
+    })
+    .catch(err => console.error("Erreur lors du chargement de la date :", err));
   </script>
 </body>
 </html>
