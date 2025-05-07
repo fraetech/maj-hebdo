@@ -212,7 +212,7 @@
     <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Free</a>,
     <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Orange</a> et
     <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">SFR</a><br>
-    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.04.30b</small></p>
+    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.05.07r (I)</small></p>
   </div>
 
   <div id="map"></div>
@@ -533,7 +533,6 @@
       }
     });
     map.addControl(new FilterControl({ position: 'topright' }));
-
     // Chargement CSV
     const urlParams = new URLSearchParams(window.location.search);
     const csvPath = urlParams.get('csv');
@@ -581,8 +580,13 @@
           const supportId = firstRow.id_support;
           const operateur = firstRow.operateur;
           const opId = operateur_map[operateur] || 'misc';
-          const actionId = (firstRow.action || 'unknown').toLowerCase();
-          const iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}_${actionId}.avif`;
+          let iconUrl;
+          if (supportRows.length > 1) {
+            iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}.avif`;
+          } else {
+            const actionId = (firstRow.action || 'misc').toLowerCase();
+            iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}_${actionId}.avif`;
+          }
 
           const marker = L.marker([lat, lon], { 
             icon: L.icon({ iconUrl, iconSize: [48,48], iconAnchor:[24,48] }),
