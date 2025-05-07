@@ -539,20 +539,12 @@
     const csvPath = urlParams.get('csv');
     let fullUrl = csvPath 
       ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/beta.csv';
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/index.csv';
 
     fetch(fullUrl)
       .then(res => res.text())
       .then(text => {
-        const allRows = csvToRows(text);
-        const lastRow = allRows.pop();
-
-        const messageStrong = document.querySelector("#message h4 strong");
-        if (message && lastRow) {
-          messageStrong.textContent = `[BETA] Dernière MAJ ANFR du : ${lastRow.join()} [BETA]`;
-        }
-
-        const rows = allRows
+        const rows = csvToRows(text);
         
         // Regrouper les lignes par ID de support
         const rowsBySupportAndOperator = {};
