@@ -538,11 +538,11 @@
     const csvPath = urlParams.get('csv');
     let fullUrlCsv = csvPath 
       ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}.csv`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/index.csv';
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/beta.csv';
     
       let fullUrlTxt = csvPath 
       ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}.txt`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/timestamp.txt';
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/beta.txt';
 
     fetch(fullUrlCsv)
       .then(res => res.text())
