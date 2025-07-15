@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <link rel="icon" href="https://fraetech.github.io/maj-hebdo/icons/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/favicon.svg" type="image/svg+xml">
   <style>
     * {
       font-family: "Didact Gothic", sans-serif !important;
@@ -396,15 +396,15 @@
 
       let links_html = `
         <a href='https://cartoradio.fr/index.html#/cartographie/lonlat/${longitude}/${latitude}' target='_blank' class="icone">
-          <img src="https://fraetech.github.io/maj-hebdo/icons/cartoradio.avif" alt="Cartoradio">
+          <img src="https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/cartoradio.avif" alt="Cartoradio">
         </a>
         <a href='https://www.google.fr/maps/place/${latitude},${longitude}' target='_blank' class="icone">
-          <img src="https://fraetech.github.io/maj-hebdo/icons/maps.avif" alt="Google Maps">
+          <img src="https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/maps.avif" alt="Google Maps">
         </a>`;
       if (firstAction.operateur === 'FREE MOBILE' || firstAction.operateur === 'TELCO OI') {
         links_html += `
         <a href='https://rncmobile.net/site/${latitude},${longitude}' target='_blank' class="icone">
-          <img src="https://fraetech.github.io/maj-hebdo/icons/rnc.avif" alt="RNC Mobile">
+          <img src="https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/rnc.avif" alt="RNC Mobile">
         </a>`;
       }
 
@@ -582,10 +582,10 @@
           const opId = operateur_map[operateur] || 'misc';
           let iconUrl;
           if (supportRows.length > 1) {
-            iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}.avif`;
+            iconUrl = `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/${opId}.avif`;
           } else {
             const actionId = (firstRow.action || 'misc').toLowerCase();
-            iconUrl = `https://fraetech.github.io/maj-hebdo/icons/${opId}_${actionId}.avif`;
+            iconUrl = `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/${opId}_${actionId}.avif`;
           }
 
           const marker = L.marker([lat, lon], { 
