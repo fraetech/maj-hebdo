@@ -537,12 +537,12 @@
     const urlParams = new URLSearchParams(window.location.search);
     const csvPath = urlParams.get('csv');
     let fullUrlCsv = csvPath 
-      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}.csv`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/beta.csv';
+      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/${csvPath}.csv`
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/hebdo/beta.csv';
     
       let fullUrlTxt = csvPath 
-      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}.txt`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/beta.txt';
+      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/${csvPath}.txt`
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/hebdo/beta.txt';
 
     fetch(fullUrlCsv)
       .then(res => res.text())
