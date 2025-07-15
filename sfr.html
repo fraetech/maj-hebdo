@@ -212,7 +212,7 @@
     <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Free</a>,
     <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Orange</a> et
     <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">SFR (cette carte)</a><br>
-    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.05.07r (S)</small></p>
+    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.07.15r (S)</small></p>
   </div>
 
   <div id="map"></div>
@@ -537,12 +537,12 @@
     const urlParams = new URLSearchParams(window.location.search);
     const csvPath = urlParams.get('csv');
     let fullUrlCsv = csvPath 
-      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}.csv`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/sfr.csv';
+      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/${csvPath}.csv`
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/hebdo/sfr.csv';
     
       let fullUrlTxt = csvPath 
-      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/${csvPath}.txt`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/main/files/hebdo/timestamp.txt';
+      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/${csvPath}.txt`
+      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/hebdo/timestamp.txt';
 
     fetch(fullUrlCsv)
       .then(res => res.text())
