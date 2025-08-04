@@ -56,6 +56,96 @@
       cursor: pointer;
     }
 
+    /* Styles pour la search box */
+    .leaflet-control.search-control {
+      background: white;
+      padding: 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      width: 300px;
+      position: relative;
+    }
+
+    /* Centrer la search box en haut */
+    .leaflet-top.leaflet-center {
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: center;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+
+    .search-result-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+      position: relative;
+    }
+
+    .search-result-item.has-operator {
+      padding-left: 20px;
+    }
+
+    .search-result-item.has-operator::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background-color: var(--operator-color);
+    }
+
+    .search-result-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-result-type {
+      font-size: 11px;
+      color: #666;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .search-result-main {
+      margin-top: 2px;
+    }
+
+    .search-result-detail {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+
     .leaflet-control.custom-filter-control {
       background: white;
       padding: 10px;
@@ -212,7 +302,7 @@
     <a href='https://fraetech.github.io/maj-hebdo/free.html' target="_self">Free</a>,
     <a href='https://fraetech.github.io/maj-hebdo/orange.html' target="_self">Orange</a> et
     <a href='https://fraetech.github.io/maj-hebdo/sfr.html' target="_self">SFR</a><br>
-    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.07.15b</small></p>
+    <b>Source :</b> <a href='https://data.anfr.fr/visualisation/information/?id=observatoire_2g_3g_4g' target='_blank'>OpenData ANFR</a> | <small>v25.08.04b (B)</small></p>
   </div>
 
   <div id="map"></div>
@@ -220,247 +310,622 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script>
-    const map = L.map('map').setView([46.5, 2.5], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const operateur_map = {
-      'ORANGE': 'ora', 'FREE MOBILE': 'fmb', 'SFR': 'sfr', 'BOUYGUES TELECOM': 'byt',
-      'TELCO OI': 'fmb', 'SRR': 'sfr', 'FREE CARAIBES': 'fmb', 'ZEOP': 'zop',
-      'DIGICEL': 'dig', 'GOUV NELLE CALEDONIE (OPT)': 'opt', 'OUTREMER TELECOM': 'ott',
-      'PMT/VODAFONE': 'pmt', 'MISC': 'misc'
-    };
-    
-    // Mapping pour les actions
-    const action_map = {
-      'ALL': 'Activation fréquence',
-      'AJO': 'Ajout fréquence',
-      'SUP': 'Suppression fréquence',
-      'EXT': 'Extinction fréquence'
-    };
-    
-    // Mapping pour les technologies (dans l'ordre: 2G, 3G, 4G, 5G)
-    const tech_map = {
-      'GSM': 'GSM (2G)',
-      'UMTS': 'UMTS (3G)',
-      'LTE': 'LTE (4G)',
-      '5G NR': 'NR (5G)'
-    };
-
-    // Ordre des technologies pour l'affichage
-    const tech_order = ['GSM', 'UMTS', 'LTE', '5G NR'];
-
-    const markersById = new Map(); // Map pour stocker les marqueurs par ID de support
-    const markerCluster = L.markerClusterGroup();
-    map.addLayer(markerCluster);
-
-    const operators = new Set();
-    const technos = new Set();
-    const freqs = new Set();
-    const actions = new Set();
-
-    const activeFilters = {
-      operateurs: new Set(),
-      technos: new Set(),
-      freqs: new Set(),
-      actions: new Set(),
-      zb: new Set(['true', 'false']),
-      new: new Set(['true', 'false'])
+    // Configuration centralisée
+    const CONFIG = {
+      operators: {
+        'ORANGE': { id: 'ora', color: '#FD7B02' },
+        'FREE MOBILE': { id: 'fmb', color: '#6D6E71' },
+        'SFR': { id: 'sfr', color: '#E40012' },
+        'BOUYGUES TELECOM': { id: 'byt', color: '#009BCE' },
+        'TELCO OI': { id: 'fmb', color: '#6D6E71' },
+        'SRR': { id: 'sfr', color: '#E40012' },
+        'FREE CARAIBES': { id: 'fmb', color: '#6D6E71' },
+        'ZEOP': { id: 'zop', color: '#681260' },
+        'DIGICEL': { id: 'dig', color: '#E4002B' },
+        'GOUV NELLE CALEDONIE (OPT)': { id: 'opt', color: '#292C83' },
+        'OUTREMER TELECOM': { id: 'ott', color: '#DE006F' },
+        'PMT/VODAFONE': { id: 'pmt', color: '#FF0E00' },
+        'MISC': { id: 'misc', color: '#000000' }
+      },
+      actions: {
+        'ALL': 'Activation fréquence',
+        'AJO': 'Ajout fréquence',
+        'SUP': 'Suppression fréquence',
+        'EXT': 'Extinction fréquence'
+      },
+      technologies: {
+        'GSM': 'GSM (2G)',
+        'UMTS': 'UMTS (3G)',
+        'LTE': 'LTE (4G)',
+        '5G NR': 'NR (5G)'
+      },
+      techOrder: ['GSM', 'UMTS', 'LTE', '5G NR'],
+      baseIconUrl: 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/',
+      baseDataUrl: 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/'
     };
 
-    function extractBaseTech(tech) {
-      return tech.replace(/\s*\d{3,4}$/, '').trim();
-    }
-
-    function extractFreq(tech) {
-      return (tech.match(/(\d{3,4})$/) || [])[1] || null;
-    }
-
-    function getCheckedValues(container) {
-      return new Set([...container.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value));
-    }
-    
-    function getSelectedRadioValue(name) {
-      const radio = document.querySelector(`input[name="${name}"]:checked`);
-      if (radio) {
-        if (radio.value === 'all') {
-          return new Set(['true', 'false']);
-        } else {
-          return new Set([radio.value]);
-        }
+    // Store unifié pour toutes les données
+    class DataStore {
+      constructor() {
+        this.supports = new Map(); // supportKey -> {marker, data, coords}
+        this.searchIndex = new Map(); // Pour recherche rapide
+        this.filterValues = {
+          operateurs: new Set(),
+          technos: new Set(),
+          freqs: new Set(),
+          actions: new Set()
+        };
+        this.activeFilters = {
+          operateurs: new Set(),
+          technos: new Set(),
+          freqs: new Set(),
+          actions: new Set(),
+          zb: new Set(['true', 'false']),
+          new: new Set(['true', 'false'])
+        };
       }
-      return new Set(['true', 'false']); // Par défaut, tout est sélectionné
-    }
 
-    function updateMarkers() {
-      activeFilters.operateurs = getCheckedValues(document.getElementById('opFilters'));
-      activeFilters.technos = getCheckedValues(document.getElementById('technoFilters'));
-      activeFilters.freqs = getCheckedValues(document.getElementById('freqFilters'));
-      activeFilters.actions = getCheckedValues(document.getElementById('actionFilters'));
-      activeFilters.zb = getSelectedRadioValue('zoneBlanche');
-      activeFilters.new = getSelectedRadioValue('siteNeuf');
-
-      markerCluster.clearLayers();
-      
-      for (const [supportId, markerData] of markersById.entries()) {
-        const { marker, actionsData } = markerData;
+      addSupport(supportKey, data) {
+        this.supports.set(supportKey, data);
         
-        // Un marqueur est affiché si au moins une de ses actions correspond aux filtres
-        let shouldDisplay = false;
+        // Indexer pour la recherche - MODIFIER ICI
+        const supportId = data.data[0].id_support;
+        const address = data.data[0].adresse;
         
-        for (const actionData of actionsData) {
-          const techs = actionData.technologie.split(',').map(t => t.trim());
-          const matchOp = activeFilters.operateurs.has(actionData.operateur);
-          const matchAction = activeFilters.actions.has(actionData.action);
-          const techFreqMatch = techs.some(tech => {
-            const baseTech = extractBaseTech(tech);
-            const freq = extractFreq(tech);
-            return activeFilters.technos.has(baseTech) && activeFilters.freqs.has(freq);
-          });
-          const matchZB = activeFilters.zb.has(actionData.is_zb);
-          const matchNew = activeFilters.new.has(actionData.is_new);
+        if (!this.searchIndex.has('support')) this.searchIndex.set('support', new Map());
+        if (!this.searchIndex.has('address')) this.searchIndex.set('address', new Map());
+        
+        // Stocker dans des arrays pour gérer les doublons
+        const supportIndex = this.searchIndex.get('support');
+        const addressIndex = this.searchIndex.get('address');
+        
+        if (!supportIndex.has(supportId.toLowerCase())) {
+            supportIndex.set(supportId.toLowerCase(), []);
+        }
+        if (!addressIndex.has(address.toLowerCase())) {
+            addressIndex.set(address.toLowerCase(), []);
+        }
+        
+        supportIndex.get(supportId.toLowerCase()).push({ supportKey, data });
+        addressIndex.get(address.toLowerCase()).push({ supportKey, data });
+        
+        // Collecter les valeurs pour les filtres
+        data.data.forEach(row => {
+            this.filterValues.operateurs.add(row.operateur);
+            this.filterValues.actions.add(row.action);
+            
+            row.technologie.split(',').forEach(tech => {
+            const cleanTech = tech.trim();
+            const baseTech = this.extractBaseTech(cleanTech);
+            const freq = this.extractFreq(cleanTech);
+            
+            this.filterValues.technos.add(baseTech);
+            if (freq) this.filterValues.freqs.add(freq);
+            });
+        });
+        }
 
-          if (matchOp && techFreqMatch && matchAction && matchZB && matchNew) {
-            shouldDisplay = true;
-            break;
+      extractBaseTech(tech) {
+        return tech.replace(/\s*\d{3,4}$/, '').trim();
+      }
+
+      extractFreq(tech) {
+        return (tech.match(/(\d{3,4})$/) || [])[1] || null;
+      }
+
+      search(query, type) {
+        const results = [];
+        const queryLower = query.toLowerCase();
+        const index = this.searchIndex.get(type);
+        
+        if (!index) return results;
+        
+        for (const [key, valueArray] of index) {
+            if (key.includes(queryLower)) {
+            // Traiter tous les résultats pour cette clé
+            valueArray.forEach(value => {
+                const firstRow = value.data.data[0];
+                const [lat, lon] = firstRow.coordonnees.split(',').map(parseFloat);
+                
+                results.push({
+                type,
+                display: type === 'support' ? `Support ${firstRow.id_support}` : firstRow.adresse,
+                detail: type === 'support' 
+                    ? `${firstRow.operateur} - ${firstRow.adresse}`
+                    : `Support ${firstRow.id_support} - ${firstRow.operateur}`,
+                marker: value.data.marker,
+                lat, lon,
+                operator: firstRow.operateur
+                });
+            });
+            }
+        }
+        
+        return results;
+        }
+
+      getFilteredSupports() {
+        const filtered = [];
+        
+        for (const [supportKey, supportData] of this.supports) {
+          let shouldDisplay = false;
+          
+          for (const row of supportData.data) {
+            if (this.matchesFilters(row)) {
+              shouldDisplay = true;
+              break;
+            }
+          }
+          
+          if (shouldDisplay) {
+            filtered.push(supportData);
           }
         }
         
-        if (shouldDisplay) {
-          markerCluster.addLayer(marker);
+        return filtered;
+      }
+
+      isResultFilteredOut(result) {
+        // Vérifier si l'opérateur est filtré
+        if (!this.activeFilters.operateurs.has(result.operator)) {
+            return true;
         }
-      }
-    }
-
-    function resetAllFilters() {
-      // Cocher toutes les cases
-      document.querySelectorAll('.filter-group input[type="checkbox"]').forEach(cb => {
-        cb.checked = true;
-      });
-      
-      // Sélectionner "Toutes" pour les boutons radio
-      document.querySelectorAll('input[name="zoneBlanche"][value="all"], input[name="siteNeuf"][value="all"]').forEach(radio => {
-        radio.checked = true;
-      });
-      
-      // Mettre à jour les marqueurs
-      updateMarkers();
-    }
-
-    function createCheckbox(container, name, type, displayName = null) {
-      const label = document.createElement('label');
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.value = name;
-      checkbox.checked = true;
-      checkbox.addEventListener('change', updateMarkers);
-      label.appendChild(checkbox);
-      label.append(' ' + (displayName || name));
-      container.appendChild(label);
-      activeFilters[type].add(name);
-    }
-    
-    function createRadioGroup(container, name, options) {
-      options.forEach((option, index) => {
-        const label = document.createElement('label');
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = name;
-        radio.value = option.value;
-        radio.checked = index === 0; // Premier élément coché par défaut
-        radio.addEventListener('change', updateMarkers);
-        label.appendChild(radio);
-        label.append(' ' + option.label);
-        container.appendChild(label);
-      });
-    }
-
-    function generatePopupContent(actionsData) {
-      if (!actionsData || actionsData.length === 0) return '';
-      
-      // On prend les informations communes du premier élément
-      const firstAction = actionsData[0];
-      const [latitude, longitude] = firstAction.coordonnees.split(',').map(s => s.trim());
-      const footer = `${firstAction.type_support} - ${firstAction.hauteur_support} - ${firstAction.proprietaire_support}`;
-      
-      const operator_colors = {
-        "BOUYGUES TELECOM": "#009BCE", "FREE MOBILE": "#6D6E71", "SFR": "#E40012", "ORANGE": "#FD7B02",
-        "TELCO OI": "#6D6E71", "SRR": "#E40012", "FREE CARAIBES": "#6D6E71", "ZEOP": "#681260",
-        "DIGICEL": "#E4002B", "GOUV NELLE CALEDONIE (OPT)": "#292C83", "OUTREMER TELECOM": "#DE006F",
-        "PMT/VODAFONE": "#FF0E00"
-      };
-
-      const bandeau_couleur = operator_colors[firstAction.operateur] || "#000000";
-      const bandeau_texte = `<a href='https://data.anfr.fr/visualisation/map/?id=observatoire_2g_3g_4g&location=17,${latitude},${longitude}' target='_blank' style='color:#FFFFFF;'>Support n°${firstAction.id_support}</a>`;
-
-      let links_html = `
-        <a href='https://cartoradio.fr/index.html#/cartographie/lonlat/${longitude}/${latitude}' target='_blank' class="icone">
-          <img src="https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/cartoradio.avif" alt="Cartoradio">
-        </a>
-        <a href='https://www.google.fr/maps/place/${latitude},${longitude}' target='_blank' class="icone">
-          <img src="https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/maps.avif" alt="Google Maps">
-        </a>`;
-      if (firstAction.operateur === 'FREE MOBILE' || firstAction.operateur === 'TELCO OI') {
-        links_html += `
-        <a href='https://rncmobile.net/site/${latitude},${longitude}' target='_blank' class="icone">
-          <img src="https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/rnc.avif" alt="RNC Mobile">
-        </a>`;
-      }
-
-      // Regrouper les actions par type
-      const actionsByType = {};
-      actionsData.forEach(action => {
-        if (!actionsByType[action.action]) {
-          actionsByType[action.action] = [];
+        
+        // Ici on pourrait ajouter d'autres vérifications si nécessaire
+        return false;
         }
-        actionsByType[action.action].push(action);
-      });
 
-      // Générer le contenu HTML pour chaque type d'action
-      let actionsHtml = '';
-      for (const [actionType, actions] of Object.entries(actionsByType)) {
-        const actionTitle = action_map[actionType] || actionType;
-        actionsHtml += `<div class="action-groupe">
-                          <div class="action-titre">${actionTitle} :</div>
-                          <div>${actions.map(a => a.technologie).join('<br>')}</div>
-                        </div>`;
+      matchesFilters(row) {
+        const matchOp = this.activeFilters.operateurs.has(row.operateur);
+        const matchAction = this.activeFilters.actions.has(row.action);
+        const matchZB = this.activeFilters.zb.has(row.is_zb);
+        const matchNew = this.activeFilters.new.has(row.is_new);
+        
+        const techFreqMatch = row.technologie.split(',').some(tech => {
+          const cleanTech = tech.trim();
+          const baseTech = this.extractBaseTech(cleanTech);
+          const freq = this.extractFreq(cleanTech);
+          return this.activeFilters.technos.has(baseTech) && this.activeFilters.freqs.has(freq);
+        });
+        
+        return matchOp && matchAction && matchZB && matchNew && techFreqMatch;
       }
 
-      return `
-        <div class="bandeau" style="background-color: ${bandeau_couleur};">${bandeau_texte}</div>
-        <div class="icone-container">${links_html}</div>
-        <div class="titre"><strong>${firstAction.adresse}</strong></div>
-        <div class="contenu">${actionsHtml}</div>
-        <div class="titre">${footer}</div>`;
+      updateActiveFilters(filterType, values) {
+        this.activeFilters[filterType] = values;
+      }
     }
 
-    function csvToRows(text) {
-      const lines = text.trim().split('\n').slice(1);
-      return lines.map(line => {
-        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''));
-        return {
-          id_support: values[0], operateur: values[1], action: values[2], technologie: values[3],
-          adresse: values[4], code_insee: values[5], coordonnees: values[6],
-          type_support: values[7], hauteur_support: values[8], proprietaire_support: values[9],
-          is_zb: values[10].toLowerCase().trim(), is_new: values[11].toLowerCase().trim()
+    // Gestionnaire de carte
+    class MapManager {
+      constructor() {
+        this.map = L.map('map').setView([46.5, 2.5], 6);
+        this.markerCluster = L.markerClusterGroup();
+        this.initBaseLayers();
+      }
+
+      initBaseLayers() {
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(this.map);
+        
+        this.map.addLayer(this.markerCluster);
+      }
+
+      updateMarkers(supports) {
+        this.markerCluster.clearLayers();
+        supports.forEach(support => {
+          this.markerCluster.addLayer(support.marker);
+        });
+      }
+
+      addControls() {
+        this.map.addControl(new SearchControl({ position: 'topleft' }));
+        this.map.addControl(new FilterControl({ position: 'topright' }));
+      }
+    }
+
+    // Générateur de contenu popup
+    class PopupGenerator {
+      static generate(actionsData) {
+        if (!actionsData || actionsData.length === 0) return '';
+        
+        const firstAction = actionsData[0];
+        const [lat, lon] = firstAction.coordonnees.split(',').map(s => s.trim());
+        
+        return `
+          ${this.generateBandeau(firstAction, lat, lon)}
+          ${this.generateIcons(firstAction, lat, lon)}
+          ${this.generateTitle(firstAction)}
+          ${this.generateActions(actionsData)}
+          ${this.generateFooter(firstAction)}
+        `;
+      }
+
+      static generateBandeau(firstAction, lat, lon) {
+        const color = CONFIG.operators[firstAction.operateur]?.color || '#000000';
+        const link = `https://data.anfr.fr/visualisation/map/?id=observatoire_2g_3g_4g&location=17,${lat},${lon}`;
+        
+        return `<div class="bandeau" style="background-color: ${color};">
+          <a href='${link}' target='_blank' style='color:#FFFFFF;'>Support n°${firstAction.id_support}</a>
+        </div>`;
+      }
+
+      static generateIcons(firstAction, lat, lon) {
+        let icons = `
+          <a href='https://cartoradio.fr/index.html#/cartographie/lonlat/${lon}/${lat}' target='_blank' class="icone">
+            <img src="${CONFIG.baseIconUrl}cartoradio.avif" alt="Cartoradio">
+          </a>
+          <a href='https://www.google.fr/maps/place/${lat},${lon}' target='_blank' class="icone">
+            <img src="${CONFIG.baseIconUrl}maps.avif" alt="Google Maps">
+          </a>`;
+        
+        if (['FREE MOBILE', 'TELCO OI'].includes(firstAction.operateur)) {
+          icons += `<a href='https://rncmobile.net/site/${lat},${lon}' target='_blank' class="icone">
+            <img src="${CONFIG.baseIconUrl}rnc.avif" alt="RNC Mobile">
+          </a>`;
+        }
+        
+        return `<div class="icone-container">${icons}</div>`;
+      }
+
+      static generateTitle(firstAction) {
+        return `<div class="titre"><strong>${firstAction.adresse}</strong></div>`;
+      }
+
+      static generateActions(actionsData) {
+        const actionsByType = {};
+        actionsData.forEach(action => {
+          if (!actionsByType[action.action]) actionsByType[action.action] = [];
+          actionsByType[action.action].push(action);
+        });
+
+        let html = '<div class="contenu">';
+        for (const [actionType, actions] of Object.entries(actionsByType)) {
+          const actionTitle = CONFIG.actions[actionType] || actionType;
+          html += `<div class="action-groupe">
+            <div class="action-titre">${actionTitle} :</div>
+            <div>${actions.map(a => a.technologie).join('<br>')}</div>
+          </div>`;
+        }
+        html += '</div>';
+        
+        return html;
+      }
+
+      static generateFooter(firstAction) {
+        return `<div class="titre">${firstAction.type_support} - ${firstAction.hauteur_support} - ${firstAction.proprietaire_support}</div>`;
+      }
+    }
+
+    // Gestionnaire de recherche
+    class SearchManager {
+      constructor(dataStore) {
+        this.dataStore = dataStore;
+        this.mapManager = mapManager;
+        this.searchTimeout = null;
+        this.currentResults = [];
+      }
+
+      async handleInput(query) {
+        clearTimeout(this.searchTimeout);
+        
+        if (query.length < 2) {
+            this.hideResults();
+            return;
+        }
+        
+        this.searchTimeout = setTimeout(async () => {
+            try {
+            // Recherche dans les données locales
+            let supportResults = this.dataStore.search(query, 'support');
+            let addressResults = this.dataStore.search(query, 'address');
+            
+            // Filtrer selon les filtres actifs
+            supportResults = supportResults.filter(result => !this.dataStore.isResultFilteredOut(result));
+            addressResults = addressResults.filter(result => !this.dataStore.isResultFilteredOut(result));
+            
+            // Recherche géographique (Nominatim)
+            const locationResults = await this.searchNominatim(query);
+            
+            // Tri existant...
+            const sortedSupportResults = supportResults.sort((a, b) => {
+                const opA = a.detail.split(' - ')[0];
+                const opB = b.detail.split(' - ')[0];
+                if (opA !== opB) return opA.localeCompare(opB);
+                return a.detail.split(' - ')[1].localeCompare(b.detail.split(' - ')[1]);
+            });
+            
+            const sortedAddressResults = addressResults.sort((a, b) => {
+                const opA = a.detail.split(' - ')[1];
+                const opB = b.detail.split(' - ')[1];
+                if (opA !== opB) return opA.localeCompare(opB);
+                return a.display.localeCompare(b.display);
+            });
+            
+            this.currentResults = [
+                ...locationResults,
+                ...sortedSupportResults,
+                ...sortedAddressResults
+            ];
+            
+            this.displayResults();
+            } catch (error) {
+            console.error('Erreur recherche:', error);
+            }
+        }, 300);
+        }
+
+      async searchNominatim(query) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=10&countrycodes=fr&q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            // Filtrer pour garder le meilleur résultat par ville/lieu
+            const seenPlaces = new Set();
+            const filteredResults = [];
+            
+            for (const item of data) {
+            // Priorité aux types : city, town, village, hamlet
+            const preferredTypes = ['city', 'town', 'village', 'hamlet', 'municipality'];
+            const isPreferredType = preferredTypes.includes(item.type) || preferredTypes.includes(item.class);
+            
+            // Extraire le nom principal de la ville depuis display_name
+            const placeName = item.display_name.split(',')[0].trim().toLowerCase();
+            
+            // Si on n'a pas encore ce lieu OU si c'est un type préféré, on l'ajoute
+            if (!seenPlaces.has(placeName) || isPreferredType) {
+                if (!seenPlaces.has(placeName)) {
+                filteredResults.push({
+                    type: 'location',
+                    display: item.display_name,
+                    lat: parseFloat(item.lat),
+                    lon: parseFloat(item.lon),
+                    importance: item.importance || 0
+                });
+                seenPlaces.add(placeName);
+                }
+            }
+            
+            if (filteredResults.length >= 1) break; // Limiter à 1 résultat au lieu de 3
+            }
+            
+            return filteredResults;
+        } catch (error) {
+            console.error('Erreur Nominatim:', error);
+            return [];
+        }
+        }
+
+      displayResults() {
+        const container = document.getElementById('searchResults');
+        container.innerHTML = '';
+        
+        if (this.currentResults.length === 0) {
+          container.style.display = 'none';
+          return;
+        }
+        
+        this.currentResults.forEach(result => {
+          const item = this.createResultItem(result);
+          container.appendChild(item);
+        });
+        
+        container.style.display = 'block';
+      }
+
+      createResultItem(result) {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        
+        const typeLabels = {
+          support: 'Support ID',
+          address: 'Adresse antenne',
+          location: 'Lieu'
         };
-      });
+        
+        if (result.operator && CONFIG.operators[result.operator]) {
+          item.classList.add('has-operator');
+          item.style.setProperty('--operator-color', CONFIG.operators[result.operator].color);
+        }
+        
+        item.innerHTML = `
+          <div class="search-result-type">${typeLabels[result.type] || result.type}</div>
+          <div class="search-result-main">${result.display}</div>
+          ${result.detail ? `<div class="search-result-detail">${result.detail}</div>` : ''}
+        `;
+        
+        item.addEventListener('click', () => this.selectResult(result));
+        return item;
+      }
+
+      selectResult(result) {
+        this.hideResults();
+        document.getElementById('searchInput').value = result.display;
+        
+        // S'assurer que mapManager est accessible
+        const mapManager = this.dataStore.mapManager || app?.mapManager;
+        if (mapManager) {
+            mapManager.map.setView([result.lat, result.lon], 15);
+            
+            if (result.marker) {
+            setTimeout(() => result.marker.openPopup(), 500);
+            }
+        }
+        }
+
+      hideResults() {
+        document.getElementById('searchResults').style.display = 'none';
+        this.currentResults = [];
+      }
     }
 
-    // Gestion fermeture bandeau message
-    document.getElementById('closeButton').addEventListener('click', () => {
-      document.getElementById('message').style.display = 'none';
-    });
-    map.on('movestart', () => {
-      const msg = document.getElementById('message');
-      if (msg) msg.style.display = 'none';
+    // Gestionnaire de filtres
+    class FilterManager {
+      constructor(dataStore, mapManager) {
+        this.dataStore = dataStore;
+        this.mapManager = mapManager;
+        this.updateTimeout = null;
+      }
+
+      initFilters() {
+        this.createFilterGroups();
+        this.attachEvents();
+      }
+
+      createFilterGroups() {
+        // Opérateurs triés alphabétiquement
+        const sortedOperators = [...this.dataStore.filterValues.operateurs].sort();
+        sortedOperators.forEach(op => 
+          this.createCheckbox('opFilters', op, 'operateurs', op)
+        );
+        
+        // Technologies dans l'ordre des générations
+        const sortedTechs = [...this.dataStore.filterValues.technos]
+          .sort((a, b) => CONFIG.techOrder.indexOf(a) - CONFIG.techOrder.indexOf(b));
+        sortedTechs.forEach(tech => 
+          this.createCheckbox('technoFilters', tech, 'technos', CONFIG.technologies[tech] || tech)
+        );
+        
+        // Fréquences triées numériquement
+        const sortedFreqs = [...this.dataStore.filterValues.freqs]
+          .map(Number).sort((a, b) => a - b).map(String);
+        sortedFreqs.forEach(freq => 
+          this.createCheckbox('freqFilters', freq, 'freqs', freq)
+        );
+        
+        // Actions
+        [...this.dataStore.filterValues.actions].sort().forEach(action => 
+          this.createCheckbox('actionFilters', action, 'actions', CONFIG.actions[action] || action)
+        );
+        
+        // Radio groups
+        this.createRadioGroup('zbFilter', 'zoneBlanche', [
+          { value: 'all', label: 'Toutes' },
+          { value: 'true', label: 'Zone blanche' },
+          { value: 'false', label: 'Non zone blanche' }
+        ]);
+        
+        this.createRadioGroup('newSiteFilter', 'siteNeuf', [
+          { value: 'all', label: 'Tous' },
+          { value: 'true', label: 'Site neuf' },
+          { value: 'false', label: 'Site existant' }
+        ]);
+      }
+
+      createCheckbox(containerId, value, filterType, displayName) {
+        const container = document.getElementById(containerId);
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        
+        checkbox.type = 'checkbox';
+        checkbox.value = value;
+        checkbox.checked = true;
+        checkbox.addEventListener('change', () => this.updateFilters());
+        
+        label.appendChild(checkbox);
+        label.append(' ' + displayName);
+        container.appendChild(label);
+        
+        this.dataStore.activeFilters[filterType].add(value);
+      }
+
+      createRadioGroup(containerId, name, options) {
+        const container = document.getElementById(containerId);
+        options.forEach((option, index) => {
+          const label = document.createElement('label');
+          const radio = document.createElement('input');
+          
+          radio.type = 'radio';
+          radio.name = name;
+          radio.value = option.value;
+          radio.checked = index === 0;
+          radio.addEventListener('change', () => this.updateFilters());
+          
+          label.appendChild(radio);
+          label.append(' ' + option.label);
+          container.appendChild(label);
+        });
+      }
+
+      updateFilters() {
+        // Débounce pour éviter les appels multiples
+        clearTimeout(this.updateTimeout);
+        this.updateTimeout = setTimeout(() => {
+            this._doUpdateFilters();
+        }, 100);
+        }
+
+      _doUpdateFilters() {
+        // Collecter les valeurs des checkboxes
+        ['operateurs', 'technos', 'freqs', 'actions'].forEach(type => {
+          const values = new Set();
+          document.querySelectorAll(`#${type === 'operateurs' ? 'op' : type === 'technos' ? 'techno' : type === 'freqs' ? 'freq' : 'action'}Filters input:checked`)
+            .forEach(cb => values.add(cb.value));
+          this.dataStore.updateActiveFilters(type, values);
+        });
+        
+        // Collecter les valeurs des radios
+        ['zoneBlanche', 'siteNeuf'].forEach(name => {
+          const radio = document.querySelector(`input[name="${name}"]:checked`);
+          const values = radio?.value === 'all' 
+            ? new Set(['true', 'false']) 
+            : new Set([radio?.value || 'true']);
+          this.dataStore.updateActiveFilters(name === 'zoneBlanche' ? 'zb' : 'new', values);
+        });
+        
+        // Mettre à jour l'affichage
+        const filteredSupports = this.dataStore.getFilteredSupports();
+        this.mapManager.updateMarkers(filteredSupports);
+      }
+
+      resetAllFilters() {
+        document.querySelectorAll('.filter-group input[type="checkbox"]').forEach(cb => cb.checked = true);
+        document.querySelectorAll('input[name="zoneBlanche"][value="all"], input[name="siteNeuf"][value="all"]')
+          .forEach(radio => radio.checked = true);
+        this.updateFilters();
+      }
+
+      attachEvents() {
+        // Event delegation pour les filtres
+        document.addEventListener('click', (e) => {
+          if (e.target.matches('.filter-group input')) {
+            e.stopPropagation();
+          }
+          if (e.target.matches('#resetFilters')) {
+            e.stopPropagation();
+            this.resetAllFilters();
+          }
+        });
+
+        // Gestion des catégories de filtres
+        document.querySelectorAll('.filter-category').forEach(cat => {
+          cat.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const group = cat.nextElementSibling;
+            group.style.maxHeight = group.style.maxHeight ? null : group.scrollHeight + "px";
+          });
+        });
+      }
+    }
+
+    // Contrôles Leaflet
+    const SearchControl = L.Control.extend({
+      onAdd: function(map) {
+        const div = L.DomUtil.create('div', 'leaflet-control search-control');
+        div.innerHTML = `
+          <input type="text" id="searchInput" class="search-input" placeholder="Rechercher une ville, adresse, ou support ID...">
+          <div id="searchResults" class="search-results"></div>
+        `;
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
+        return div;
+      }
     });
 
     const FilterControl = L.Control.extend({
       onAdd: function(map) {
         const div = L.DomUtil.create('div', 'leaflet-control custom-filter-control collapsed');
-
         div.innerHTML = `
           <div class="filters-content" style="display:none;">
             <button class="reset-filters" id="resetFilters">Réinitialiser tous les filtres</button>
@@ -473,191 +938,245 @@
           </div>
         `;
 
-        // Gestionnaire d'événement pour ouvrir/fermer le conteneur principal des filtres
-        div.addEventListener('click', function (e) {
+        // Empêcher la propagation du scroll vers la carte
+        L.DomEvent.disableScrollPropagation(div);
+
+        // Et également après la création du toggle :
+        div.addEventListener('click', (e) => {
+        // Code existant...
+        });
+
+        // Ajouter ceci pour gérer le scroll spécifiquement
+        div.addEventListener('wheel', (e) => {
+        e.stopPropagation();
+        });
+
+        // Toggle du panneau de filtres
+        div.addEventListener('click', (e) => {
           if (e.target === div || e.target.classList.contains('filters-content')) {
             if (div.classList.contains('collapsed')) {
               div.classList.remove('collapsed');
               div.classList.add('expanded');
-              const content = div.querySelector('.filters-content');
-              if (content) {
-                content.style.display = 'block';
-              }
-            } else if (div.classList.contains('expanded') && (e.target === div || e.target.classList.contains('filters-content'))) {
+              div.querySelector('.filters-content').style.display = 'block';
+            } else if (div.classList.contains('expanded')) {
               div.classList.remove('expanded');
               div.classList.add('collapsed');
-              const content = div.querySelector('.filters-content');
-              if (content) {
-                content.style.display = 'none';
-              }
+              div.querySelector('.filters-content').style.display = 'none';
             }
           }
         });
 
-        // Arrêter la propagation des événements pour les éléments de filtre
-        div.querySelectorAll('.filter-group').forEach(group => {
-          group.addEventListener('click', (e) => {
-            e.stopPropagation();
-          });
-        });
-
-        map.on('movestart', () => {
-          const filterDiv = document.querySelector('.leaflet-control.custom-filter-control');
-          if (filterDiv) {
-            filterDiv.classList.remove('expanded');
-            filterDiv.classList.add('collapsed');
-            const content = filterDiv.querySelector('.filters-content');
-            if (content) {
-              content.style.display = 'none';
-            }
-          }
-          const msg = document.getElementById('message');
-          if (msg) msg.style.display = 'none';
-        });
-
-        // Gestion des catégories de filtres
-        div.querySelectorAll('.filter-category').forEach(cat => {
-          cat.addEventListener('click', (e) => {
-            e.stopPropagation(); // Empêcher la propagation vers le conteneur principal
-            const group = cat.nextElementSibling;
-            if (group.style.maxHeight) {
-              group.style.maxHeight = null;
-            } else {
-              group.style.maxHeight = group.scrollHeight + "px";
-            }
-          });
-        });
-
-        window.filtersReady = true;
         return div;
       }
     });
-    map.addControl(new FilterControl({ position: 'topright' }));
-    // Chargement CSV
-    const urlParams = new URLSearchParams(window.location.search);
-    const csvPath = urlParams.get('csv');
-    let fullUrlCsv = csvPath 
-      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/${csvPath}.csv`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/hebdo/beta.csv';
-    
-      let fullUrlTxt = csvPath 
-      ? `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/${csvPath}.txt`
-      : 'https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/files/hebdo/beta.txt';
 
-    fetch(fullUrlCsv)
-      .then(res => res.text())
-      .then(text => {
-        const rows = csvToRows(text);
-        
-        // Regrouper les lignes par ID de support
-        const rowsBySupportAndOperator = {};
-          for (const row of rows) {
-            const supportId = row.id_support;
-            const operateur = row.operateur;
-            const key = `${supportId}_${operateur}`;
-            
-            if (!rowsBySupportAndOperator[key]) {
-              rowsBySupportAndOperator[key] = [];
-            }
-            rowsBySupportAndOperator[key].push(row);
-            
-            // Collecter les opérateurs, actions, technologies et fréquences
-            operators.add(operateur);
-            actions.add(row.action);
-            row.technologie.split(',').map(t => t.trim()).forEach(t => {
-              technos.add(extractBaseTech(t));
-              const freq = extractFreq(t);
-              if (freq) freqs.add(freq);
-            });
-          }
-        
-        // Créer les marqueurs regroupés par support
-        for (const [key, supportRows] of Object.entries(rowsBySupportAndOperator)) {
-          const firstRow = supportRows[0]; // Utiliser la première ligne pour les coordonnées
-          const [lat, lon] = firstRow.coordonnees.split(',').map(parseFloat);
-          if (isNaN(lat) || isNaN(lon)) continue;
-
-          const supportId = firstRow.id_support;
-          const operateur = firstRow.operateur;
-          const opId = operateur_map[operateur] || 'misc';
-          let iconUrl;
-          if (supportRows.length > 1) {
-            iconUrl = `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/${opId}.avif`;
-          } else {
-            const actionId = (firstRow.action || 'misc').toLowerCase();
-            iconUrl = `https://raw.githubusercontent.com/fraetech/maj-hebdo/refs/heads/data/icons/${opId}_${actionId}.avif`;
-          }
-
-          const marker = L.marker([lat, lon], { 
-            icon: L.icon({ iconUrl, iconSize: [48,48], iconAnchor:[24,48] }),
-            title: operateur // Affiche l'opérateur au survol
-          }).bindPopup(generatePopupContent(supportRows));
-          
-          markerCluster.addLayer(marker);
-          // Stockage des marqueurs avec un ID composé du support et de l'opérateur
-          markersById.set(key, { marker, actionsData: supportRows, supportId: supportId });
-        }
-
-        const waitForFilters = setInterval(() => {
-          if (window.filtersReady) {
-            clearInterval(waitForFilters);
-
-            // Tri alphabétique des opérateurs
-            const sortedOperators = [...operators].sort();
-            sortedOperators.forEach(op => createCheckbox(document.getElementById('opFilters'), op, 'operateurs'));
-            
-            // Tri des actions avec les noms traduits
-            const sortedActions = [...actions].sort();
-            sortedActions.forEach(a => createCheckbox(document.getElementById('actionFilters'), a, 'actions', action_map[a] || a));
-            
-            // Tri des technologies selon l'ordre de génération (2G, 3G, 4G, 5G)
-            const sortedTechnos = [...technos].sort((a, b) => {
-              return tech_order.indexOf(a) - tech_order.indexOf(b);
-            });
-            sortedTechnos.forEach(t => createCheckbox(document.getElementById('technoFilters'), t, 'technos', tech_map[t] || t));
-            
-            // Tri numérique des fréquences
-            const sortedFreqs = [...freqs].map(Number).sort((a, b) => a - b).map(String);
-            sortedFreqs.forEach(f => createCheckbox(document.getElementById('freqFilters'), f, 'freqs'));
-            
-            // Radio buttons pour Zone Blanche
-            createRadioGroup(document.getElementById('zbFilter'), 'zoneBlanche', [
-              { value: 'all', label: 'Toutes' },
-              { value: 'true', label: 'Zone blanche' },
-              { value: 'false', label: 'Non zone blanche' }
-            ]);
-            
-            // Radio buttons pour Sites Neufs
-            createRadioGroup(document.getElementById('newSiteFilter'), 'siteNeuf', [
-              { value: 'all', label: 'Tous' },
-              { value: 'true', label: 'Site neuf' },
-              { value: 'false', label: 'Site existant' }
-            ]);
-            
-            // Arrêter la propagation pour les éléments de formulaire et leurs labels
-            document.querySelectorAll('.filter-group label, .filter-group input').forEach(el => {
-              el.addEventListener('click', (e) => {
-                e.stopPropagation();
-              });
-            });
-
-            // Ajouter l'événement pour le bouton de réinitialisation
-            document.getElementById('resetFilters').addEventListener('click', (e) => {
-              e.stopPropagation();
-              resetAllFilters();
-            });
-          }
-        }, 50);
-      });
-    fetch(fullUrlTxt)
-    .then(res => res.text())
-    .then(text => {
-      const strongElem = document.querySelector("#message h4 strong");
-      if (strongElem) {
-        strongElem.textContent = `MAJ ANFR du ${text.trim()}`;
+    // Utilitaires
+    class Utils {
+      static csvToRows(text) {
+        const lines = text.trim().split('\n').slice(1);
+        return lines.map(line => {
+          const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''));
+          return {
+            id_support: values[0],
+            operateur: values[1],
+            action: values[2],
+            technologie: values[3],
+            adresse: values[4],
+            code_insee: values[5],
+            coordonnees: values[6],
+            type_support: values[7],
+            hauteur_support: values[8],
+            proprietaire_support: values[9],
+            is_zb: values[10]?.toLowerCase().trim() || 'false',
+            is_new: values[11]?.toLowerCase().trim() || 'false'
+          };
+        });
       }
-    })
-    .catch(err => console.error("Erreur lors du chargement de la date :", err));
+
+      static createMarker(supportData) {
+        const firstRow = supportData[0];
+        const [lat, lon] = firstRow.coordonnees.split(',').map(parseFloat);
+        
+        if (isNaN(lat) || isNaN(lon)) return null;
+
+        const opConfig = CONFIG.operators[firstRow.operateur] || CONFIG.operators['MISC'];
+        const actionId = supportData.length > 1 ? '' : `_${firstRow.action.toLowerCase()}`;
+        const iconUrl = `${CONFIG.baseIconUrl}${opConfig.id}${actionId}.avif`;
+
+        const marker = L.marker([lat, lon], {
+          icon: L.icon({
+            iconUrl,
+            iconSize: [48, 48],
+            iconAnchor: [24, 48]
+          }),
+          title: firstRow.operateur
+        });
+
+        marker.bindPopup(PopupGenerator.generate(supportData));
+        return marker;
+      }
+
+      static getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const csvPath = params.get('csv');
+        
+        const baseUrl = CONFIG.baseDataUrl + (csvPath ? `${csvPath}` : 'hebdo/index');
+        
+        return {
+          csvUrl: `${baseUrl}.csv?t=${Date.now()}`, // Eviter le cache
+          timestampUrl: `${baseUrl.replace('index', 'timestamp')}.txt?t=${Date.now()}`
+        };
+      }
+    }
+
+    // Application principale
+    class ANFRApp {
+      constructor() {
+        this.dataStore = new DataStore();
+        this.mapManager = new MapManager();
+        this.searchManager = new SearchManager(this.dataStore, this.mapManager);
+        this.filterManager = new FilterManager(this.dataStore, this.mapManager);
+        
+        this.init();
+      }
+
+      async init() {
+        this.setupEventListeners();
+        this.mapManager.addControls();
+        await this.loadData();
+        this.filterManager.initFilters();
+        this.initSearch();
+        this.hideLoadingMessage();
+      }
+
+      setupEventListeners() {
+        // Fermeture du message d'accueil
+        document.getElementById('closeButton')?.addEventListener('click', () => {
+          document.getElementById('message').style.display = 'none';
+        });
+
+        // Fermeture automatique lors du déplacement de carte
+        this.mapManager.map.on('movestart', () => {
+          const msg = document.getElementById('message');
+          if (msg) msg.style.display = 'none';
+          this.searchManager.hideResults();
+          
+          // Fermer le panneau de filtres
+          const filterPanel = document.querySelector('.leaflet-control.custom-filter-control');
+          if (filterPanel?.classList.contains('expanded')) {
+            filterPanel.classList.remove('expanded');
+            filterPanel.classList.add('collapsed');
+            filterPanel.querySelector('.filters-content').style.display = 'none';
+          }
+        });
+
+        // Fermer la recherche si clic ailleurs
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.search-control')) {
+            this.searchManager.hideResults();
+          }
+        });
+      }
+
+      async loadData() {
+        try {
+          const { csvUrl, timestampUrl } = Utils.getUrlParams();
+          
+          // Charger les données CSV
+          const csvResponse = await fetch(csvUrl);
+          const csvText = await csvResponse.text();
+          const rows = Utils.csvToRows(csvText);
+          
+          // Charger la date de mise à jour
+          try {
+            const timestampResponse = await fetch(timestampUrl);
+            const timestamp = await timestampResponse.text();
+            const strongElem = document.querySelector("#message h4 strong");
+            if (strongElem) {
+              strongElem.textContent = `MAJ ANFR du ${timestamp.trim()}`;
+            }
+          } catch (err) {
+            console.warn("Impossible de charger la date:", err);
+          }
+          
+          this.processData(rows);
+          
+        } catch (error) {
+          console.error('Erreur lors du chargement des données:', error);
+          const strongElem = document.querySelector("#message h4 strong");
+          if (strongElem) {
+            strongElem.textContent = "Erreur de chargement des données";
+            strongElem.style.color = "red";
+          }
+        }
+      }
+
+      processData(rows) {
+        // Regrouper par support + opérateur
+        const groupedData = {};
+        
+        rows.forEach(row => {
+          const key = `${row.id_support}_${row.operateur}`;
+          if (!groupedData[key]) {
+            groupedData[key] = [];
+          }
+          groupedData[key].push(row);
+        });
+
+        // Créer les marqueurs et stocker les données
+        Object.entries(groupedData).forEach(([key, supportRows]) => {
+          const marker = Utils.createMarker(supportRows);
+          if (marker) {
+            const [lat, lon] = supportRows[0].coordonnees.split(',').map(parseFloat);
+            this.dataStore.addSupport(key, {
+              marker,
+              data: supportRows,
+              coords: { lat, lon }
+            });
+          }
+        });
+
+        // Initialiser l'affichage
+        const allSupports = Array.from(this.dataStore.supports.values());
+        this.mapManager.updateMarkers(allSupports);
+      }
+
+      initSearch() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            this.searchManager.handleInput(e.target.value.trim());
+          });
+        }
+      }
+
+      hideLoadingMessage() {
+        setTimeout(() => {
+          const message = document.getElementById('message');
+          if (message) {
+            message.style.display = 'none';
+          }
+        }, 3000);
+      }
+    }
+
+    // Initialisation de l'application
+    let app;
+    document.addEventListener('DOMContentLoaded', () => {
+      app = new ANFRApp();
+    });
+
+    // Variables globales pour compatibilité (si nécessaire)
+    let mapManager, dataStore, searchManager, filterManager;
+    
+    // Exposer les managers si besoin pour le debugging
+    window.debugApp = () => ({
+      dataStore: app?.dataStore,
+      mapManager: app?.mapManager,
+      searchManager: app?.searchManager,
+      filterManager: app?.filterManager
+    });
+
   </script>
 </body>
 </html>
