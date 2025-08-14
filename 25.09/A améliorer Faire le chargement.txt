@@ -1,0 +1,5 @@
+A améliorer :
+- Faire le chargement des tiles OSM, fonts et CSV en même temps / le plus rapidement possible, afin que l'utilisateur reste moins longtemps dans le "flou" comme c'est le cas actuellement.
+- Graphismes : centrer la barre de recherche sur le côté + le petit bandeau de chaque popup ne dépasse plus le popup.. pas ouf :/
+
+Sinon c'est po trop mal :D

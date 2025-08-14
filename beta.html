@@ -56,14 +56,75 @@
       cursor: pointer;
     }
 
+    /* Styles pour l'icône de recherche */
+    .leaflet-control.search-icon-control {
+      background: white;
+      width: 30px;
+      height: 30px;
+      margin-left: 11px;
+      border-radius: 2px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+
+    .leaflet-control.search-icon-control svg {
+      display: block;
+    }
+
+    .leaflet-control.search-icon-control:hover {
+      background-color: #f4f4f4;
+    }
+
     /* Styles pour la search box */
     .leaflet-control.search-control {
       background: white;
       padding: 8px;
       border-radius: 6px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      width: 300px;
+      width: 320px;
       position: relative;
+      display: none;
+    }
+
+    .leaflet-control.search-control.expanded {
+      display: block;
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: #666;
+      cursor: pointer;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .clear-search-btn:hover {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 40px 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
     }
 
     /* Centrer la search box en haut */
@@ -73,15 +134,6 @@
       transform: translateX(-50%);
       display: flex;
       justify-content: center;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
-      box-sizing: border-box;
     }
 
     .search-results {
@@ -285,8 +337,55 @@
     }
 
     strong { font-weight: bold; }
-  </style>
-</head>
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .leaflet-control.search-control {
+        width: calc(100vw - 40px);
+        max-width: 320px;
+      }
+      
+      .leaflet-control.custom-filter-control.expanded {
+        width: calc(100vw - 40px);
+        max-width: 250px;
+      }
+      
+      .search-input {
+        font-size: 16px; /* Évite le zoom sur iOS */
+      }
+      
+      .leaflet-top.leaflet-center {
+        left: 20px;
+        right: 20px;
+        transform: none;
+        justify-content: stretch;
+      }
+      
+      .leaflet-control.search-icon-control {
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .leaflet-control.search-control {
+        width: calc(100vw - 40px);
+      }
+      
+      .leaflet-control.custom-filter-control.expanded {
+        width: calc(100vw - 20px);
+      }
+      
+      .leaflet-top.leaflet-center {
+        left: 10px;
+        right: 10px;
+      }
+      
+      .search-input::placeholder {
+        font-size: 13px;
+      }
+    }
+      </style>
+    </head>
 <body>
 
   <div id="message">
@@ -520,6 +619,7 @@
       }
 
       addControls() {
+        this.map.addControl(new SearchIconControl({ position: 'topleft' }));
         this.map.addControl(new SearchControl({ position: 'topleft' }));
         this.map.addControl(new FilterControl({ position: 'topright' }));
       }
@@ -755,8 +855,19 @@
         }
 
       hideResults() {
-        document.getElementById('searchResults').style.display = 'none';
+        const searchResults = document.getElementById('searchResults');
+        if (searchResults) {
+          searchResults.style.display = 'none';
+        }
         this.currentResults = [];
+      }
+
+      hideSearchBar() {
+        const searchControl = document.querySelector('.search-control');
+        if (searchControl) {
+          searchControl.classList.remove('expanded');
+        }
+        this.hideResults();
       }
     }
 
@@ -910,11 +1021,40 @@
     }
 
     // Contrôles Leaflet
+    const SearchIconControl = L.Control.extend({
+      onAdd: function(map) {
+        const div = L.DomUtil.create('div', 'leaflet-control search-icon-control');
+        div.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>`;
+        div.title = 'Rechercher';
+        
+        div.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const searchControl = document.querySelector('.search-control');
+          if (searchControl) {
+            searchControl.classList.add('expanded');
+            const input = document.getElementById('searchInput');
+            if (input) {
+              setTimeout(() => input.focus(), 100);
+            }
+          }
+        });
+        
+        L.DomEvent.disableClickPropagation(div);
+        return div;
+      }
+    });
+
     const SearchControl = L.Control.extend({
       onAdd: function(map) {
         const div = L.DomUtil.create('div', 'leaflet-control search-control');
         div.innerHTML = `
-          <input type="text" id="searchInput" class="search-input" placeholder="Rechercher une ville, adresse, ou support ID...">
+          <div style="position: relative;">
+            <input type="text" id="searchInput" class="search-input" placeholder="Rechercher une ville, adresse, ou support ID...">
+            <button id="clearSearch" class="clear-search-btn" style="display: none;" type="button">&times;</button>
+          </div>
           <div id="searchResults" class="search-results"></div>
         `;
         L.DomEvent.disableClickPropagation(div);
@@ -1046,37 +1186,45 @@
         await this.loadData();
         this.filterManager.initFilters();
         this.initSearch();
-        this.hideLoadingMessage();
       }
 
       setupEventListeners() {
-        // Fermeture du message d'accueil
-        document.getElementById('closeButton')?.addEventListener('click', () => {
-          document.getElementById('message').style.display = 'none';
-        });
+      // Helper pour masquer le message
+      const hideMessage = () => {
+        const msg = document.getElementById('message');
+        if (msg) msg.style.display = 'none';
+      };
 
-        // Fermeture automatique lors du déplacement de carte
-        this.mapManager.map.on('movestart', () => {
-          const msg = document.getElementById('message');
-          if (msg) msg.style.display = 'none';
-          this.searchManager.hideResults();
-          
-          // Fermer le panneau de filtres
-          const filterPanel = document.querySelector('.leaflet-control.custom-filter-control');
-          if (filterPanel?.classList.contains('expanded')) {
-            filterPanel.classList.remove('expanded');
-            filterPanel.classList.add('collapsed');
-            filterPanel.querySelector('.filters-content').style.display = 'none';
-          }
-        });
+      // Fermeture du message d'accueil
+      document.getElementById('closeButton')?.addEventListener('click', hideMessage);
 
-        // Fermer la recherche si clic ailleurs
-        document.addEventListener('click', (e) => {
-          if (!e.target.closest('.search-control')) {
-            this.searchManager.hideResults();
-          }
-        });
-      }
+      // Fermeture automatique lors du déplacement de carte
+      this.mapManager.map.on('movestart', () => {
+        hideMessage();
+        this.searchManager.hideSearchBar();
+        
+        // Fermer le panneau de filtres
+        const filterPanel = document.querySelector('.leaflet-control.custom-filter-control');
+        if (filterPanel?.classList.contains('expanded')) {
+          filterPanel.classList.remove('expanded');
+          filterPanel.classList.add('collapsed');
+          filterPanel.querySelector('.filters-content').style.display = 'none';
+        }
+      });
+
+      // Masquer le message lors d'un clic sur la carte
+      this.mapManager.map.on('click', hideMessage);
+
+      // Masquer le message lors d'un zoom
+      this.mapManager.map.on('zoomstart', hideMessage);
+
+      // Fermer la recherche si clic ailleurs
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-control') && !e.target.closest('.search-icon-control')) {
+          this.searchManager.hideSearchBar();
+        }
+      });
+    }
 
       async loadData() {
         try {
@@ -1145,18 +1293,33 @@
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
           searchInput.addEventListener('input', (e) => {
-            this.searchManager.handleInput(e.target.value.trim());
+            const value = e.target.value.trim();
+            this.searchManager.handleInput(value);
+            
+            // Afficher/masquer la croix selon s'il y a du texte
+            const clearButton = document.getElementById('clearSearch');
+            if (clearButton) {
+              clearButton.style.display = value ? 'flex' : 'none';
+            }
           });
         }
-      }
-
-      hideLoadingMessage() {
+        
+        // Attendre que le DOM soit prêt pour attacher l'événement à la croix
         setTimeout(() => {
-          const message = document.getElementById('message');
-          if (message) {
-            message.style.display = 'none';
+          const clearButton = document.getElementById('clearSearch');
+          if (clearButton) {
+            clearButton.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const searchInput = document.getElementById('searchInput');
+              if (searchInput) {
+                searchInput.value = '';
+                this.searchManager.hideResults();
+                searchInput.focus();
+              }
+              clearButton.style.display = 'none';
+            });
           }
-        }, 3000);
+        }, 100);
       }
     }
 
