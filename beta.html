@@ -430,7 +430,8 @@
         'ALL': 'Activation fréquence',
         'AJO': 'Ajout fréquence',
         'SUP': 'Suppression fréquence',
-        'EXT': 'Extinction fréquence'
+        'EXT': 'Extinction fréquence',
+        'AAV': 'Activation en AVance'
       },
       technologies: {
         'GSM': 'GSM (2G)',
@@ -683,15 +684,32 @@
         let html = '<div class="contenu">';
         for (const [actionType, actions] of Object.entries(actionsByType)) {
           const actionTitle = CONFIG.actions[actionType] || actionType;
-          html += `<div class="action-groupe">
-            <div class="action-titre">${actionTitle} :</div>
-            <div>${actions.map(a => a.technologie).join('<br>')}</div>
-          </div>`;
+
+          if (actionType === 'AAV') {
+            html += `<div class="action-groupe">
+              <div class="action-titre">Activation en AVance :</div>
+              <div>${actions.map(a => {
+                let dateBrackets = '';
+                if (a.date_activ) {
+                  const [y, m, d] = a.date_activ.split('-');
+                  dateBrackets = ` [Activation prévue le : ${d}/${m}/${y}]`;
+                }
+                return `${a.technologie}${dateBrackets}`;
+              }).join('<br>')}</div>
+            </div>`;
+          }
+          else {
+            html += `<div class="action-groupe">
+              <div class="action-titre">${actionTitle} :</div>
+              <div>${actions.map(a => a.technologie).join('<br>')}</div>
+            </div>`;
+          }
         }
         html += '</div>';
-        
+
         return html;
       }
+
 
       static generateFooter(firstAction) {
         return `<div class="titre">${firstAction.type_support} - ${firstAction.hauteur_support} - ${firstAction.proprietaire_support}</div>`;
@@ -1127,8 +1145,9 @@
             type_support: values[7],
             hauteur_support: values[8],
             proprietaire_support: values[9],
-            is_zb: values[10]?.toLowerCase().trim() || 'false',
-            is_new: values[11]?.toLowerCase().trim() || 'false'
+            date_activ: values[10],
+            is_zb: values[11]?.toLowerCase().trim() || 'false',
+            is_new: values[12]?.toLowerCase().trim() || 'false'
           };
         });
       }
@@ -1141,7 +1160,13 @@
 
         const opConfig = CONFIG.operators[firstRow.operateur] || CONFIG.operators['MISC'];
         const actionId = supportData.length > 1 ? '' : `_${firstRow.action.toLowerCase()}`;
-        const iconUrl = `${CONFIG.baseIconUrl}${opConfig.id}${actionId}.avif`;
+        let iconUrl;
+        
+        if (actionId === '_aav') {
+          iconUrl = `${CONFIG.baseIconUrl}${opConfig.id}.avif`;
+        } else {
+          iconUrl = `${CONFIG.baseIconUrl}${opConfig.id}${actionId}.avif`;
+        }
 
         const marker = L.marker([lat, lon], {
           icon: L.icon({
@@ -1160,7 +1185,7 @@
         const params = new URLSearchParams(window.location.search);
         const csvPath = params.get('csv');
         
-        const baseUrl = CONFIG.baseDataUrl + (csvPath ? `${csvPath}` : 'hebdo/index');
+        const baseUrl = CONFIG.baseDataUrl + (csvPath ? `${csvPath}` : 'hebdo/beta');
         
         return {
           csvUrl: `${baseUrl}.csv?t=${Date.now()}`, // Eviter le cache
