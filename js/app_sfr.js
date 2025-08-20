@@ -147,25 +147,21 @@ function createMapControls(map, dataStore, searchManager, filterManager) {
 
 async function loadCsvAndInit(dataStore, mapManager) {
   try {
-    // Build csv URL (default) - uses same pattern as original
     const params = new URLSearchParams(window.location.search);
     const csvPath = params.get('csv');
-    const base = csvPath ? csvPath : 'hebdo/index';
+    const base = csvPath ? csvPath : 'hebdo/sfr';
     const csvUrl = `${CONFIG.baseDataUrl}${base}.csv?t=${Date.now()}`;
-    const timestampUrl = `${CONFIG.baseDataUrl}${base.replace('index','timestamp')}.txt?t=${Date.now()}`;
+    const timestampUrl = `${CONFIG.baseDataUrl}${base.replace('sfr','timestamp')}.txt?t=${Date.now()}`;
 
-    // Fetch CSV (async, not blocking initial render)
     const csvResp = await fetch(csvUrl);
     const csvText = await csvResp.text();
     const rows = (await import('./utils.js')).Utils.csvToRows(csvText);
 
-    // Try to fetch timestamp (non-blocking)
     fetch(timestampUrl).then(r => r.text()).then(ts => {
       const strongElem = document.querySelector("#message-status");
       if (strongElem && ts) strongElem.textContent = `MAJ ANFR du ${ts.trim()}`;
-    }).catch(() => { /* ignore */ });
+    }).catch(() => {});
 
-    // Group rows by support+operateur
     const grouped = {};
     rows.forEach(row => {
       const key = `${row.id_support}_${row.operateur}`;
@@ -173,15 +169,196 @@ async function loadCsvAndInit(dataStore, mapManager) {
       grouped[key].push(row);
     });
 
-    // Create markers progressively - DataStore will add markers and push them to cluster as they're created
-    dataStore.createAndStoreMarkers(grouped);
+    dataStore.createAndStoreMarkersInBatches(grouped, 200);
 
-    // After creating, initialize filters (done by caller)
   } catch (err) {
     console.error('Loading CSV failed', err);
     const strongElem = document.querySelector("#message-status");
-    if (strongElem) { strongElem.textContent = "Erreur de chargement des données"; strongElem.style.color = 'red'; }
+    if (strongElem) { 
+      strongElem.textContent = "Erreur de chargement des données"; 
+      strongElem.style.color = 'red'; 
+    }
   }
+}
+
+window.shareLocation = function(lat, lon, supportId) {
+  const url = `${window.location.origin}${window.location.pathname}#support=${supportId}&lat=${lat}&lon=${lon}`;
+  
+  // Copier dans le presse-papiers
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(url).then(() => {
+      showNotification('Lien copié dans le presse-papiers !', 'success');
+    }).catch(() => {
+      fallbackCopyToClipboard(url);
+    });
+  } else {
+    fallbackCopyToClipboard(url);
+  }
+};
+
+// Fallback pour les navigateurs plus anciens
+function fallbackCopyToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    showNotification('Lien copié dans le presse-papiers !', 'success');
+  } catch (err) {
+    console.error('Erreur de copie:', err);
+    showNotification('Impossible de copier automatiquement. URL: ' + text, 'error');
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+class URLManager {
+  constructor(mapManager, dataStore) {
+    this.mapManager = mapManager;
+    this.dataStore = dataStore;
+    // Attendre que les données soient chargées avant de vérifier l'URL
+    this.checkURLOnLoadDelayed();
+  }
+  
+  checkURLOnLoadDelayed() {
+    // Vérifier l'URL après un délai pour s'assurer que les markers sont chargés
+    setTimeout(() => {
+      this.checkURLOnLoad();
+    }, 1000); // Délai plus long pour laisser le temps aux markers de se charger
+  }
+  
+  checkURLOnLoad() {
+    const hash = window.location.hash.substring(1);
+    if (!hash) return;
+    
+    const params = new URLSearchParams(hash);
+    const supportId = params.get('support');
+    const lat = parseFloat(params.get('lat'));
+    const lon = parseFloat(params.get('lon'));
+    
+    if (supportId && lat && lon) {
+      this.openSupportFromURL(supportId, lat, lon);
+    }
+  }
+  
+  openSupportFromURL(supportId, lat, lon) {
+    // Centre la carte d'abord
+    this.mapManager.map.setView([lat, lon], 16);
+    
+    // Trouve et ouvre le popup correspondant avec plusieurs stratégies
+    setTimeout(() => {
+      let markerFound = false;
+      
+      // Stratégie 1 : Recherche par ID support dans les données
+      if (this.dataStore && this.dataStore.allData) {
+        const matchingData = this.dataStore.allData.find(item => 
+          item.id_support === supportId
+        );
+        
+        if (matchingData) {
+          const [itemLat, itemLon] = matchingData.coordonnees.split(',').map(s => parseFloat(s.trim()));
+          
+          // Chercher le marker correspondant
+          this.mapManager.markersLayer.eachLayer(marker => {
+            if (!markerFound) {
+              const markerLat = marker.getLatLng().lat;
+              const markerLon = marker.getLatLng().lng;
+              
+              // Comparaison avec une tolérance plus large
+              if (Math.abs(markerLat - itemLat) < 0.0001 && Math.abs(markerLon - itemLon) < 0.0001) {
+                marker.openPopup();
+                markerFound = true;
+                console.log('Popup ouvert via stratégie 1 (ID support)');
+                return;
+              }
+            }
+          });
+        }
+      }
+      
+      // Stratégie 2 : Si pas trouvé, chercher par coordonnées avec tolérance
+      if (!markerFound) {
+        this.mapManager.markersLayer.eachLayer(marker => {
+          if (!markerFound) {
+            const markerLat = marker.getLatLng().lat;
+            const markerLon = marker.getLatLng().lng;
+            
+            // Tolérance élargie pour les coordonnées
+            if (Math.abs(markerLat - lat) < 0.001 && Math.abs(markerLon - lon) < 0.001) {
+              marker.openPopup();
+              markerFound = true;
+              console.log('Popup ouvert via stratégie 2 (coordonnées)');
+              return;
+            }
+          }
+        });
+      }
+      
+      // Stratégie 3 : Si toujours pas trouvé, chercher le marker le plus proche
+      if (!markerFound) {
+        let closestMarker = null;
+        let minDistance = Infinity;
+        
+        this.mapManager.markersLayer.eachLayer(marker => {
+          const markerLat = marker.getLatLng().lat;
+          const markerLon = marker.getLatLng().lng;
+          const distance = Math.sqrt(
+            Math.pow(markerLat - lat, 2) + Math.pow(markerLon - lon, 2)
+          );
+          
+          if (distance < minDistance && distance < 0.01) { // Dans un rayon raisonnable
+            minDistance = distance;
+            closestMarker = marker;
+          }
+        });
+        
+        if (closestMarker) {
+          closestMarker.openPopup();
+          markerFound = true;
+          console.log('Popup ouvert via stratégie 3 (plus proche)');
+        }
+      }
+      
+      if (!markerFound) {
+        console.warn('Aucun marker trouvé pour:', { supportId, lat, lon });
+        // Optionnel : afficher une notification à l'utilisateur
+        showNotification('Support non trouvé sur la carte', 'error');
+      }
+      
+    }, 800); // Délai pour laisser le temps à la carte de se centrer
+  }
+}
+
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 10000;
+    font-family: inherit;
+    animation: slideIn 0.3s ease;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease forwards';
+    setTimeout(() => document.body.removeChild(notification), 300);
+  }, 3000);
 }
 
 async function main() {
@@ -217,6 +394,7 @@ async function main() {
 
   // Ensure controls are wired: searchManager displays results into #searchResults
   // and filterManager will apply filters to the markers already added.
+  const urlManager = new URLManager(mapManager, dataStore);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

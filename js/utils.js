@@ -20,8 +20,9 @@ export const Utils = {
         type_support: values[7],
         hauteur_support: values[8],
         proprietaire_support: values[9],
-        is_zb: values[10]?.toLowerCase().trim() || 'false',
-        is_new: values[11]?.toLowerCase().trim() || 'false'
+        date_activ: values[10],
+        is_zb: values[11]?.toLowerCase().trim() || 'false',
+        is_new: values[12]?.toLowerCase().trim() || 'false'
       };
     });
   },

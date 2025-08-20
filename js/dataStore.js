@@ -124,32 +124,43 @@ export class DataStore {
     this.activeFilters[filterType] = values;
   }
 
-  // Build markers from rows (rows: array of parsed CSV rows grouped by support+operator)
-  createAndStoreMarkers(groupedDataObj) {
-    Object.entries(groupedDataObj).forEach(([key, supportRows]) => {
-      const firstRow = supportRows[0];
-      const [lat, lon] = Utils.safeParseFloatPair(firstRow.coordonnees);
-      if (isNaN(lat) || isNaN(lon)) return;
+  // Création progressive des marqueurs (batch)
+  createAndStoreMarkersInBatches(groupedDataObj, batchSize = 200) {
+    const entries = Object.entries(groupedDataObj);
+    let index = 0;
 
-      const opConfig = CONFIG.operators[firstRow.operateur] || CONFIG.operators['MISC'];
-      const actionId = supportRows.length > 1 ? '' : `_${firstRow.action?.toLowerCase?.() || ''}`;
-      const iconUrl = `${CONFIG.baseIconUrl}${opConfig.id}${actionId}.avif`;
+    const processBatch = () => {
+      const end = Math.min(index + batchSize, entries.length);
+      for (; index < end; index++) {
+        const [key, supportRows] = entries[index];
+        const firstRow = supportRows[0];
+        const [lat, lon] = Utils.safeParseFloatPair(firstRow.coordonnees);
+        if (isNaN(lat) || isNaN(lon)) continue;
 
-      // Lazy icon creation - use small icon size for perf
-      const icon = L.icon({
-        iconUrl,
-        iconSize: [48,48],
-        iconAnchor: [24,48],
-        popupAnchor: [0,-40]
-      });
+        const opConfig = CONFIG.operators[firstRow.operateur] || CONFIG.operators['MISC'];
+        const actionId = supportRows.length > 1 ? '' : `_${firstRow.action?.toLowerCase?.() || ''}`;
+        const iconUrl = `${CONFIG.baseIconUrl}${opConfig.id}${actionId}.avif`;
 
-      const marker = L.marker([lat, lon], { icon, title: firstRow.operateur });
-      marker.bindPopup(PopupGenerator.generate(supportRows), { maxWidth: 320 });
-      const storeObj = { marker, data: supportRows, coords: { lat, lon } };
+        const icon = L.icon({
+          iconUrl,
+          iconSize: [48,48],
+          iconAnchor: [24,48],
+          popupAnchor: [0,-40]
+        });
 
-      this.addSupport(key, storeObj);
-      // Add to map cluster immediately for progressive display
-      this.mapManager.addMarkerToCluster(marker);
-    });
+        const marker = L.marker([lat, lon], { icon, title: firstRow.operateur });
+        marker.bindPopup(PopupGenerator.generate(supportRows), { maxWidth: 320 });
+        const storeObj = { marker, data: supportRows, coords: { lat, lon } };
+
+        this.addSupport(key, storeObj);
+        this.mapManager.addMarkerToCluster(marker);
+      }
+
+      if (index < entries.length) {
+        setTimeout(processBatch, 0); // laisse respirer le navigateur
+      }
+    };
+
+    processBatch();
   }
 }

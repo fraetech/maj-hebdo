@@ -17,6 +17,7 @@ export const CONFIG = {
   },
   actions: {
     'ALL': 'Activation fréquence',
+    'AAV': 'Activation prévisionnelle',
     'AJO': 'Ajout fréquence',
     'SUP': 'Suppression fréquence',
     'EXT': 'Extinction fréquence'

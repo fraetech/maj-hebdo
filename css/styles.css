@@ -1,5 +1,3 @@
-/* styles.css — version fidèle à l'original (avec correction .bandeau a en blanc) */
-
 /* Appliquer la police globale identique à l'original */
 * {
   font-family: "Didact Gothic", sans-serif !important;
@@ -261,21 +259,70 @@ html, body {
   background-color: #e0e0e0;
 }
 
-/* Styles pour les popups */
 .leaflet-popup-content {
   text-align: center;
-  margin: 10px;
+  margin: 0 !important; /* Supprimer la marge par défaut de Leaflet */
+  padding: 0 !important; /* Supprimer le padding par défaut */
+  width: auto !important; /* Laisser la largeur s'adapter au contenu */
+  max-width: 280px; /* Limiter la largeur maximale */
 }
 
-/* Important: bandeau header style (original) */
+/* 2. S'assurer que le wrapper du popup ne déborde pas */
+.leaflet-popup-content-wrapper {
+  padding: 0 !important; /* Supprimer le padding par défaut de Leaflet */
+  margin: 0 !important;
+  background: none !important; /* Laisser le background à popup-operator-bg */
+  border-radius: 6px !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-close-button {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 50% !important;
+  width: 22px !important; /* Légèrement plus petite */
+  height: 22px !important;
+  line-height: 20px !important;
+  text-align: center !important;
+  color: #333 !important;
+  font-weight: bold !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+  border: 1px solid #ccc !important;
+  top: 17px !important; /* Ajusté pour le nouveau bandeau plus petit */
+  right: 10px !important; /* Légèrement plus proche du bord */
+  transform: translateY(-50%) !important;
+  z-index: 1001 !important;
+  font-size: 14px !important; /* Taille de police légèrement réduite */
+}
+
+.leaflet-popup-close-button:hover {
+  background-color: rgba(255, 255, 255, 1) !important;
+  color: #000 !important;
+}
+
 .bandeau {
-  margin: -12px -20px 10px -20px;
-  padding: 10px;
+  margin: 0;
+  padding: 6px 12px;
   text-align: center;
-  border-radius: 12px 12px 0 0;
+  border-radius: 6px 6px 0 0;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Force link in bandeau to white (needed since popup generator may not inline the color) */
+.titre, .contenu {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.icone-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .bandeau a {
   text-decoration: none;
   font-weight: bold;
@@ -286,6 +333,98 @@ html, body {
   text-decoration: underline;
 }
 
+/* Espacement entre les icônes et le contenu */
+.icone-container + .titre {
+  margin-top: 15px;
+}
+
+.icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* Réduit de 50px à 40px */
+  height: 40px; /* Réduit de 50px à 40px */
+  border-radius: 6px; /* Réduit de 8px à 6px */
+  background-color: rgba(245, 245, 245, 0.9);
+  padding: 4px; /* Réduit de 5px à 4px */
+  transition: all 0.2s ease;
+}
+
+.icone img {
+  max-width: 32px; /* Réduit de 40px à 32px */
+  max-height: 32px; /* Réduit de 40px à 32px */
+}
+
+.icone:hover {
+  background-color: rgba(224, 224, 224, 0.9);
+  transform: scale(1.05);
+}
+
+.titre {
+  margin: 6px 0; /* Réduit de 8px à 6px */
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px; /* Réduit de 6px 10px à 4px 8px */
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px; /* Légère réduction de la taille de police si nécessaire */
+}
+
+.contenu {
+  margin: 6px 0; /* Réduit de 8px à 6px */
+  text-align: left;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px; /* Réduit de 10px à 8px */
+  border-radius: 4px;
+}
+
+.action-groupe {
+  margin-bottom: 6px; /* Réduit de 8px à 6px */
+}
+
+.action-groupe:last-child {
+  margin-bottom: 0; /* Supprimer la marge du dernier élément */
+}
+
+.action-titre {
+  font-weight: bold;
+  margin-bottom: 2px; /* Réduit de 4px à 2px */
+  font-size: 13px; /* Légère réduction */
+}
+.popup-operator-bg {
+  position: relative;
+  padding: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 160px; /* Réduit de 200px à 160px */
+  width: 260px; /* Réduit de 280px à 260px */
+  box-sizing: border-box;
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.popup-operator-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--logo-url);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.popup-operator-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+.popup-content-wrapper {
+  padding: 8px 12px 12px 12px;
+  box-sizing: border-box;
+  width: 100%;
+}
+/* Style pour le container des icônes - MANQUANT */
 .icone-container {
   display: flex;
   justify-content: center;
@@ -293,92 +432,100 @@ html, body {
   margin: 12px 0;
 }
 
-.icone {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  background-color: #f5f5f5;
-  padding: 5px;
+/* Amélioration de la lisibilité du footer */
+.popup-content-wrapper .titre:last-child {
+  background-color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9em;
+  font-weight: normal;
+  color: #666;
+  text-align: center;
+}
+.leaflet-popup-tip-container {
+  z-index: 999 !important; /* Z-index inférieur à la croix mais supérieur au contenu */
+}
+
+.leaflet-popup-tip {
+  z-index: 999 !important;
+}
+.share-btn {
+  background: rgba(245, 245, 245, 0.9);
+  border: none;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.icone:hover {
-  background-color: #e0e0e0;
+.share-btn:hover {
+  background: rgba(224, 224, 224, 0.9);
   transform: scale(1.05);
 }
 
-.icone img {
-  max-width: 40px;
-  max-height: 40px;
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-.titre {
-  margin: 8px 0;
-}
-
-.contenu {
-  margin: 12px 0;
-  text-align: left;
-}
-
-.action-groupe {
-  margin-bottom: 8px;
-}
-
-.action-titre {
-  font-weight: bold;
-  margin-bottom: 4px;
+@keyframes slideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
 }
 
 strong { font-weight: bold; }
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .leaflet-control.search-control {
-    width: calc(100vw - 40px);
-    max-width: 320px;
+  .popup-operator-bg {
+    width: calc(100vw - 60px);
+    max-width: 260px;
+    min-height: 140px; /* Encore plus compact sur mobile */
   }
-      
-  .leaflet-control.custom-filter-control.expanded {
-    width: calc(100vw - 40px);
-    max-width: 250px;
+  
+  .popup-content-wrapper {
+    padding: 6px 10px 10px 10px;
   }
-      
-  .search-input {
-    font-size: 16px; /* Évite le zoom sur iOS */
+  
+  .bandeau {
+    padding: 5px 10px;
   }
-      
-  .leaflet-top.leaflet-center {
-    left: 20px;
-    right: 20px;
-    transform: none;
-    justify-content: stretch;
+  
+  .icone-container {
+    margin: 6px 0;
+    gap: 6px;
   }
-      
-  .leaflet-control.search-icon-control {
-    margin-left: 0;
+  
+  .icone {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .icone img {
+    max-width: 28px;
+    max-height: 28px;
+  }
+  
+  .titre {
+    font-size: 13px;
+    padding: 3px 6px;
+    margin: 4px 0;
+  }
+  
+  .contenu {
+    padding: 6px;
+    margin: 4px 0;
+  }
+  
+  .action-titre {
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .leaflet-control.search-control {
+  .popup-operator-bg {
     width: calc(100vw - 40px);
+    max-width: 260px;
   }
-      
-  .leaflet-control.custom-filter-control.expanded {
-    width: calc(100vw - 20px);
-  }
-      
-  .leaflet-top.leaflet-center {
-    left: 10px;
-    right: 10px;
-  }
-      
-  .search-input::placeholder {
-    font-size: 13px;
+  
+  .popup-content-wrapper {
+    padding: 5px 8px 8px 8px;
   }
 }
 
