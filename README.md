@@ -6,15 +6,15 @@ Dans ce *repo* GitHub, vous trouverez les quelques fichiers HTML faisant partie 
 ## Qu'est-ce-que MAJ-HEBDO ?
 Le but est de fournir plusieurs cartes répertoriant les modifications déclarées auprès de l'ANFR par les opérateurs français généralement sur une semaine.  
 Ce projet se distingue par le fait que l'intégralité des mises à jour est automatisée, rendant la publications de mise-à-jour plus rapide.  
-Pour accéder à la cartographie des mises à jour, vous pouvez suivre [ce lien](https://fraetech.github.io/maj-hebdo/).
+Pour accéder à la cartographie des mises à jour, vous pouvez suivre [ce lien](https://fraetech.github.io/).
 
 ## Le code source de MAJ-HEBDO est-il disponible ?
-Oui ! Depuis peu, l'intégralité du code source a été rendu public. N'hésitez pas à y jeter un oeil ! C'est [par ici](https://github.com/fraetech/anfr_hebdo).
+Oui ! L'intégralité du code source est, public. N'hésitez pas à y jeter un oeil ! C'est [par ici](https://github.com/fraetech/anfr_hebdo), pour le "back" et [par là](https://github.com/fraetech/fraetech.github.io), pour le "front".
 
 ## Je souhaite contribuer, comment faire ?
-Tout dépend du type de contribution.  
+Tout dépend du type de contribution.
 - **Pour une simple remontée de bug ou une suggestion**, utilisez le menu "Issues" de GitHub.  
-- **Si vous souhaitez modifier le code source**, vous pouvez effectuer un *fork*, puis soumettre une *pull request*. Rien de bien sorcier ! :D
+- **Si vous souhaitez modifier le code source**, vous pouvez effectuer un *fork*, puis soumettre une *pull request*, comme d'hab' :)
 
 ## License
 Le projet est sous la licence [GNU GPL-v3](./LICENSE). Vous pouvez consulter le fichier LICENSE pour plus de détails.
@@ -23,4 +23,4 @@ Le projet est sous la licence [GNU GPL-v3](./LICENSE). Vous pouvez consulter le 
 Si pour une autre raison vous devez me contacter, vous pouvez le faire *via* mes différents réseaux sociaux (Bluesky, Mastodon, Discord, ...), ou par mail :  
 [fraetech@free.fr](mailto:fraetech@free.fr).
 
-Bonne visite sur MAJ_HEBDO !!!
+Bonne visite !
